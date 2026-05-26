@@ -1,49 +1,286 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import Layout from '../layouts/Layout.astro';
+import Card from '../components/Card.astro';
+import { Image } from 'astro:assets';
+import profileImg from '../assets/port_img.jpg';
+
+// Personal Data
+const personalInfo = {
+    name: "Andre YI",
+    role: "Mathematical Science Student",
+    interests: "Math & CS & GO",
+    intro: "Exploring the intersection of Deep Learning, Mathematics, and Financial Mathematics. "
+};
+
+// 子分类定义
+const mathSubCategories = [
+    { id: 'all', label: 'All' },
+    { id: 'Deep Learning', label: 'Deep Learning' },
+    { id: 'algebra', label: 'Algebra' },
+    // { id: 'geometry', label: 'Geometry' },
+    { id: 'probability', label: 'Probability' }
+];
+
+const engSubCategories = [
+    { id: 'all', label: 'All' },
+    { id: 'cs', label: 'Computer Science' },
+    { id: 'soc', label: 'Sociology' }
+];
+
+// Load Data from Content Collection
+import { getCollection } from 'astro:content';
+const posts = await getCollection('blog');
+
+const allProjects = posts.map(post => {
+    let category = 'cs'; // default
+    const sub = post.data.subcategory?.toLowerCase() || '';
+    const tags = post.data.tags || [];
+    
+    if (['algebra', 'geometry', 'probability', 'calculus & analysis', 'deep learning'].some(k => sub.includes(k)) || tags.includes('Math')) {
+        category = 'math';
+    } else if (sub.includes('sociology') || tags.includes('Sociology')) {
+        category = 'soc';
+    } else {
+        category = 'cs';
+    }
+
+    return {
+        title: post.data.title,
+        subtitle: post.data.subtitle,
+        description: post.data.description,
+        href: `/blog/${post.id}`,
+        tags: post.data.tags,
+        category: category,
+        subcategory: post.data.subcategory || 'other'
+    };
+});
+
+// Sort by Date (optional, if you want newest first on homepage)
+// allProjects.sort((a, b) => ...);
+
+// Split Data
+const mathProjects = allProjects.filter(p => p.category === 'math');
+const engProjects = allProjects.filter(p => p.category === 'cs' || p.category === 'soc');
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This template
-				serves as a lightweight, minimally-styled starting point for anyone looking to build a personal
-				website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to
-				<a href="https://docs.astro.build/">read the docs</a>
-				or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a>
-				by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
-</html>
+<Layout title="Andre's Portfolio">
+    
+    {/* --- Hero Section --- */}
+    <section class="mb-20 md:mb-32 pt-10 px-4 md:px-0">
+        <div class="flex flex-col-reverse md:flex-row items-center justify-between gap-12 max-w-6xl mx-auto">
+            
+            {/* Text Content */}
+            <div class="flex-1 text-center md:text-left animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-6">
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-on-surface">
+                    Hi, I'm <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-tertiary animate-gradient">{personalInfo.name}</span>.
+                </h1>
+                
+                <p class="text-xl md:text-3xl text-on-surface-variant font-medium leading-relaxed">
+                    A {personalInfo.role} passionate about <span class="text-primary font-semibold relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-primary/30">{personalInfo.interests}</span>.
+                </p>
+                
+                <p class="text-lg text-on-surface-variant/80 max-w-xl mx-auto md:mx-0 leading-relaxed">
+                    {personalInfo.intro}
+                </p>
+                
+                {/* Desktop Buttons */}
+                <div class="hidden lg:flex pt-4 gap-4 justify-center md:justify-start">
+                    <a href="/blog" class="group relative inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl font-semibold shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+                        <span class="absolute inset-0 bg-gradient-to-r from-purple-700 to-violet-700 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                        <span class="relative flex items-center gap-2">
+                            <span class="text-lg font-serif italic opacity-80">∫</span>
+                            <span>Read Blog</span>
+                            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </span>
+                    </a>
+                    <a href="/about" class="group inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 rounded-2xl font-semibold border-2 border-zinc-200 dark:border-zinc-700 hover:border-purple-300 dark:hover:border-purple-700 hover:text-purple-600 dark:hover:text-purple-400 shadow-sm hover:shadow-md transition-all duration-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span>About Me</span>
+                    </a>
+                </div>
+
+                {/* Mobile Quick Nav */}
+                <div class="lg:hidden grid grid-cols-2 gap-3 pt-6">
+                    <a href="/blog" class="group flex items-center justify-center gap-2 h-14 bg-gradient-to-br from-purple-600 to-violet-600 text-white rounded-2xl shadow-lg shadow-purple-500/30 active:scale-95 transition-all duration-200">
+                        <span class="text-xl font-serif italic opacity-80">∫</span>
+                        <span class="font-semibold">Blog</span>
+                        <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="/about" class="group flex items-center justify-center gap-2 h-14 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border-2 border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-sm active:scale-95 transition-all duration-200">
+                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span class="font-semibold">About</span>
+                    </a>
+                </div>
+            </div>
+
+            {/* Profile Image */}
+            <div class="relative group shrink-0 animate-in fade-in zoom-in duration-700 delay-200">
+                <div class="absolute -inset-1 bg-gradient-to-tr from-primary to-tertiary rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                <div class="relative w-48 h-48 md:w-80 md:h-80 rounded-full p-1 bg-background overflow-hidden ring-4 ring-surface shadow-2xl transition-transform duration-500 ease-out transform group-hover:scale-105 group-hover:rotate-1">
+                    <Image 
+                        src={profileImg} 
+                        alt="Profile picture of Alex" 
+                        class="w-full h-full object-cover rounded-full"
+                        width={320}
+                        height={320}
+                        quality="high"
+                    />
+                </div>
+            </div>
+            
+        </div>
+    </section>
+
+    {/* --- Section 1: Mathematics --- */}
+    <section id="math-section" class="mb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800 gap-4">
+            <div>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-on-surface tracking-tight mb-2">
+                    Mathematics & Analysis
+                </h2>
+                <p class="text-on-surface-variant text-sm md:text-base">Notes on Algebra, Calculus, and Geometry.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                {/* 子分类选择器 */}
+                <div class="flex flex-wrap gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+                    {mathSubCategories.map(sub => (
+                        <button 
+                            data-section="math"
+                            data-subcategory={sub.id}
+                            class={`sub-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${sub.id === 'all' ? 'bg-white dark:bg-zinc-700 text-purple-600 dark:text-purple-400 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-purple-600'}`}
+                        >
+                            {sub.label}
+                        </button>
+                    ))}
+                </div>
+                <a href="/blog?topic=math" class="hidden md:flex text-sm font-semibold text-primary hover:text-primary-container transition-colors items-center group whitespace-nowrap">
+                    View All <span class="ml-1 transform transition-transform group-hover:translate-x-1">&rarr;</span>
+                </a>
+            </div>
+        </div>
+
+        <div id="math-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {mathProjects.map(project => (
+                <div data-category="math" data-subcategory={project.subcategory || 'other'} class="project-card">
+                    <Card 
+                        title={project.title}
+                        subtitle={project.subtitle}
+                        description={project.description}
+                        href={project.href}
+                        tags={project.tags}
+                        variant="horizontal"
+                        class="transition-all duration-500 ease-out transform"
+                    />
+                </div>
+            ))}
+        </div>
+        <a href="/blog?topic=math" class="md:hidden mt-4 flex justify-center text-sm font-semibold text-primary">
+            View All Math Notes &rarr;
+        </a>
+    </section>
+
+    {/* --- Section 2: Engineering & Sociology --- */}
+    <section id="eng-section" class="mb-24 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800 gap-4">
+            <div>
+                <h2 class="text-3xl md:text-4xl font-serif font-bold text-on-surface tracking-tight mb-2">
+                    Engineering & Sociology
+                </h2>
+                <p class="text-on-surface-variant text-sm md:text-base">CS projects and social dynamics research.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                {/* 子分类选择器 */}
+                <div class="flex flex-wrap gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
+                    {engSubCategories.map(sub => (
+                        <button 
+                            data-section="eng"
+                            data-subcategory={sub.id}
+                            class={`sub-filter-btn px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${sub.id === 'all' ? 'bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-emerald-600'}`}
+                        >
+                            {sub.label}
+                        </button>
+                    ))}
+                </div>
+                <a href="/blog?topic=cs" class="hidden md:flex text-sm font-semibold text-primary hover:text-primary-container transition-colors items-center group whitespace-nowrap">
+                    View All <span class="ml-1 transform transition-transform group-hover:translate-x-1">&rarr;</span>
+                </a>
+            </div>
+        </div>
+
+        <div id="eng-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {engProjects.map(project => (
+                <div data-category="eng" data-subcategory={project.category} class="project-card">
+                    <Card 
+                        title={project.title}
+                        subtitle={project.subtitle}
+                        description={project.description}
+                        href={project.href}
+                        tags={project.tags}
+                        variant="horizontal"
+                        class="transition-all duration-500 ease-out transform"
+                    />
+                </div>
+            ))}
+        </div>
+        <a href="/blog?topic=cs" class="md:hidden mt-4 flex justify-center text-sm font-semibold text-primary">
+            View All Projects &rarr;
+        </a>
+    </section>
+
+</Layout>
+
+<style>
+    .sub-filter-btn.active {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    :global(.dark) .sub-filter-btn.active {
+        background: rgb(63 63 70);
+    }
+    .project-card {
+        transition: all 0.3s ease;
+    }
+    .project-card.hidden-card {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const subFilterBtns = document.querySelectorAll<HTMLButtonElement>('.sub-filter-btn');
+        
+        subFilterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = btn.dataset.section;
+                const subcategory = btn.dataset.subcategory;
+                
+                // 更新按钮样式
+                const sectionBtns = document.querySelectorAll(`.sub-filter-btn[data-section="${section}"]`);
+                sectionBtns.forEach(b => {
+                    b.classList.remove('bg-white', 'dark:bg-zinc-700', 'text-purple-600', 'text-emerald-600', 'dark:text-purple-400', 'dark:text-emerald-400', 'shadow-sm');
+                    b.classList.add('text-zinc-600', 'dark:text-zinc-400');
+                });
+                btn.classList.remove('text-zinc-600', 'dark:text-zinc-400');
+                btn.classList.add('bg-white', 'dark:bg-zinc-700', 'shadow-sm');
+                if (section === 'math') {
+                    btn.classList.add('text-purple-600', 'dark:text-purple-400');
+                } else {
+                    btn.classList.add('text-emerald-600', 'dark:text-emerald-400');
+                }
+                
+                // 筛选卡片
+                const gridId = section === 'math' ? 'math-grid' : 'eng-grid';
+                const cards = document.querySelectorAll<HTMLElement>(`#${gridId} .project-card`);
+                
+                cards.forEach(card => {
+                    const cardSubcat = card.dataset.subcategory;
+                    if (subcategory === 'all' || cardSubcat === subcategory) {
+                        card.classList.remove('hidden-card');
+                    } else {
+                        card.classList.add('hidden-card');
+                    }
+                });
+            });
+        });
+    });
+</script>

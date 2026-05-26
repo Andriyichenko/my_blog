@@ -1,114 +1,492 @@
 ---
-import { Image } from 'astro:assets';
-import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
-import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import profileImg from '../../assets/port_img.jpg'; // Default avatar
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = await getCollection('blog');
+const sortedPosts = posts.sort((a, b) => {
+    const dateA = a.data.pubDate || new Date(0);
+    const dateB = b.data.pubDate || new Date(0);
+    return dateB.valueOf() - dateA.valueOf();
+});
+
+// Search Index
+const searchIndex = sortedPosts.map(post => ({
+    id: post.id,
+    title: post.data.title,
+    description: post.data.description,
+    body: post.body, 
+    tags: post.data.tags || [],
+    category: post.data.subcategory || 'uncategorized',
+    author: post.data.author || 'Alex'
+}));
+
+const categories = [
+    { name: "Mathematics", slug: "math", sub: [
+        "Algebra", "Geometry & Topology", "Calculus & Analysis", "Number Theory", "Probability & Statistics"
+    ]},
+    { name: "Computer Science", slug: "cs" },
+    { name: "Sociology", slug: "soc" }
+];
+
+const authors = ["Alex"]; 
+const tags = ["React", "Manim", "Python", "DataViz", "MachineLearning", "Stochastic"];
+
+function getReadingTime(body: string) {
+    const wordsPerMinute = 200;
+    const words = body ? body.split(/\s+/).length : 0;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes} min`;
+}
+
+const categoryColors = {
+    'math': 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300',
+    'cs': 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-300',
+    'soc': 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300',
+    'default': 'text-zinc-600 bg-zinc-50 dark:bg-zinc-800 dark:text-zinc-300'
+};
 ---
 
-<!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
-		</style>
+		<BaseHead title="The MathVerse Archives" description="Exploring the intersection of Calculus, Code, and Society." />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 	</head>
-	<body>
+	<body class="bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 min-h-screen flex flex-col font-sans selection:bg-purple-200 selection:text-purple-900">
 		<Header />
-		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
-									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
-			</section>
-		</main>
+		
+        {/* 统一的 Sticky Search Bar - 桌面端和移动端 */}
+        <div class="sticky top-0 z-50 bg-white/90 dark:bg-black/85 backdrop-blur-xl border-b border-zinc-200/70 dark:border-zinc-800/70 shadow-md shadow-purple-500/5">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-3 py-3">
+                    {/* 返回主页按钮 */}
+                    <a href="/" class="shrink-0 flex items-center justify-center w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all border border-zinc-200/50 dark:border-zinc-700/50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    </a>
+                    
+                    {/* Filter 侧边栏触发按钮 */}
+                    <button id="filter-sidebar-btn" class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all text-sm font-medium border border-zinc-200/50 dark:border-zinc-700/50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        <span class="hidden sm:inline">Filter</span>
+                    </button>
+                    
+                    {/* Search 搜索栏 */}
+                    <div class="relative flex-1 group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-zinc-400 group-focus-within:text-purple-500 transition-colors font-serif italic text-sm">∫</span>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="search-input"
+                            class="block w-full pl-9 pr-10 py-2.5 bg-white/80 dark:bg-zinc-900/70 border border-zinc-200/70 dark:border-zinc-700/70 rounded-2xl text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-purple-200/80 dark:focus:ring-purple-900/50 focus:border-purple-500 transition-all text-sm shadow-[0_6px_24px_rgba(99,102,241,0.08)] group-hover:shadow-[0_10px_28px_rgba(99,102,241,0.12)]" 
+                            placeholder="搜索文章 (⌘K)" 
+                        />
+                        <button id="search-clear" class="absolute inset-y-0 right-3 items-center hidden text-zinc-400 hover:text-zinc-600 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                    
+                    {/* 快速筛选按钮 */}
+                    <div class="hidden md:flex items-center gap-1.5">
+                        <button data-type="topic" data-filter="all" class="sticky-filter-btn active px-3 py-1.5 rounded-lg text-xs font-medium transition-all font-serif italic">
+                            All
+                        </button>
+                        {categories.map(cat => (
+                            <button data-type="topic" data-filter={cat.slug} class="sticky-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all font-serif italic" title={cat.name}>
+                                {cat.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Filter 侧边栏 Overlay */}
+        <div id="filter-sidebar-overlay" class="fixed inset-0 bg-black/50 z-50 opacity-0 invisible transition-opacity duration-300"></div>
+        
+        {/* Filter 侧边栏 */}
+        <aside id="filter-sidebar" class="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-zinc-900 z-50 transform -translate-x-full transition-transform duration-300 ease-out shadow-2xl overflow-y-auto">
+            <div class="p-6">
+                {/* 侧边栏头部 */}
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-xl font-serif italic font-bold text-zinc-900 dark:text-white tracking-tight">
+                        Topics
+                    </h2>
+                    <button id="filter-sidebar-close" class="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                {/* 分类列表 */}
+                <nav class="space-y-2" id="sidebar-nav">
+                    <button data-type="topic" data-filter="all" class="sidebar-btn w-full text-left px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-3 hover:bg-purple-50 dark:hover:bg-purple-900/20 active font-serif italic">
+                        <span>All Posts</span>
+                    </button>
+                    {categories.map(cat => (
+                        <div class="group">
+                            <button data-type="topic" data-filter={cat.slug} class="sidebar-btn w-full text-left px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center gap-3 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-zinc-600 dark:text-zinc-400 font-serif italic">
+                                <span>{cat.name}</span>
+                            </button>
+                            {cat.sub && (
+                                <div class="ml-11 mt-1 space-y-1 pl-4 border-l-2 border-zinc-200 dark:border-zinc-700">
+                                    {cat.sub.map(sub => {
+                                        const subSlug = sub.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
+                                        return (
+                                            <button data-type="topic" data-filter={subSlug} class="sidebar-btn w-full text-left py-2 px-3 text-sm text-zinc-500 dark:text-zinc-500 hover:text-purple-600 dark:hover:text-purple-400 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all font-serif italic">
+                                                {sub}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </nav>
+
+                {/* 分隔线 */}
+                <div class="my-8 h-px bg-zinc-200 dark:bg-zinc-800"></div>
+
+                {/* Authors */}
+                <div class="mb-8">
+                    <h3 class="font-serif font-bold text-sm uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
+                        <span class="text-purple-500">∂</span> Authors
+                    </h3>
+                    <div class="space-y-2">
+                        {authors.map(author => (
+                            <button data-type="author" data-filter={author} class="sidebar-btn w-full flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors group">
+                                <div class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-zinc-200 dark:ring-zinc-700">
+                                    <Image src={profileImg} alt={author} width={40} height={40} class="w-full h-full object-cover" />
+                                </div>
+                                <span class="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-purple-600 dark:group-hover:text-purple-400">{author}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Tags */}
+                <div>
+                    <h3 class="font-serif font-bold text-sm uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
+                        <span class="text-purple-500">#</span> Tags
+                    </h3>
+                    <div class="flex flex-wrap gap-2">
+                        {tags.map(tag => (
+                            <button data-type="tag" data-filter={tag} class="sidebar-btn px-3 py-1.5 text-xs rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-colors border border-zinc-200/50 dark:border-zinc-700/50">
+                                #{tag}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        {/* --- Aesthetic Header Block --- */}
+        <div class="relative bg-gradient-to-br from-zinc-100 to-zinc-50 dark:from-zinc-900 dark:to-black border-b border-zinc-200 dark:border-zinc-800 overflow-hidden">
+            {/* Abstract Pattern */}
+            <div class="absolute inset-0 opacity-10 pointer-events-none">
+                <svg class="w-full h-full" width="100%" height="100%" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                    <g fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M769 229L1037 260.9M927 880L731 737 520 660 309 538 40 599 295 764 126 598 79 414 -17 218 173 229 276 225 375 266 586 240 812 265 769 229 977 6 1037 260.9 927 880 731 737 520 660 309 538 40 599 295 764 126 598 79 414 -17 218 173 229 276 225 375 266 586 240 812 265 769 229 977 6 1037 260.9" opacity="0.5"></path>
+                    </g>
+                </svg>
+            </div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left">
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-zinc-900 dark:text-white mb-3 tracking-tight leading-tight">
+                    The MathVerse Archives
+                </h1>
+                <p class="text-base md:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl font-light leading-relaxed">
+                    Exploring the intersection of <span class="text-purple-600 font-medium">Calculus</span>, <span class="text-emerald-600 font-medium">Code</span>, and <span class="text-amber-600 font-medium">Society</span>.
+                </p>
+            </div>
+        </div>
+
+        <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+
+            <div class="animate-fade-in-up">
+
+                    <!-- Article List -->
+                    <div id="articles-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-h-[500px]">
+                        {sortedPosts.map((post) => {
+                            const cat = post.data.subcategory || (post.data.tags && post.data.tags[0]) || 'Uncategorized';
+                            const slugCat = cat.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
+                            const author = post.data.author || 'Alex';
+                            const tags = post.data.tags || [];
+                            
+                            let mainCat = 'default';
+                            if (categories[0].sub?.includes(cat) || post.data.tags?.includes('Math')) mainCat = 'math';
+                            if (post.data.tags?.includes('Python') || post.data.tags?.includes('React')) mainCat = 'cs';
+                            
+                            const pillClass = categoryColors[mainCat] || categoryColors['default'];
+                            
+                            return (
+                                <article 
+                                    class="article-card group relative bg-white dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden hover:-translate-y-1 hover:shadow-md transition-all duration-300 ease-out opacity-0 translate-y-4"
+                                    data-id={post.id}
+                                    data-category={slugCat}
+                                    data-main-category={mainCat}
+                                    data-author={author}
+                                    data-tags={tags.join(',')}
+                                >
+                                    <a href={`/blog/${post.id}/`} class="block p-4">
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${pillClass}`}>
+                                                    {cat}
+                                                </span>
+                                                <span class="text-[10px] text-zinc-400 font-medium">
+                                                    {new Date(post.data.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                </span>
+                                            </div>
+                                            
+                                            <h2 class="text-lg md:text-xl font-bold text-zinc-900 dark:text-white leading-tight line-clamp-1 group-hover:text-purple-600 transition-colors">
+                                                {post.data.title}
+                                            </h2>
+                                            
+                                            {post.data.subtitle && (
+                                                <p class="text-sm font-serif italic text-zinc-500 dark:text-zinc-400 -mt-1 mb-1">
+                                                    {post.data.subtitle}
+                                                </p>
+                                            )}
+                                            
+                                            <div class="snippet-container text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed line-clamp-2">
+                                                {post.data.description}
+                                            </div>
+                                            
+                                            <div class="flex items-center justify-between mt-1">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-7 h-7 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-800 shadow-sm shrink-0">
+                                                        <Image src={post.data.authorImage || profileImg} alt={author} width={28} height={28} class="w-full h-full object-cover" />
+                                                    </div>
+                                                    <span class="text-[11px] text-zinc-500 dark:text-zinc-400">By {author}</span>
+                                                </div>
+                                                <div class="flex items-center text-xs font-medium text-purple-600 opacity-0 transform translate-x-[-10px] group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 ml-auto">
+                                                    Read note <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </article>
+                            );
+                        })}
+
+                        <div id="no-results" class="hidden col-span-full flex flex-col items-center justify-center py-12 text-center">
+                            <span class="text-4xl font-serif text-zinc-300 mb-2">∅</span>
+                            <p class="text-zinc-500 dark:text-zinc-400 text-sm">No notes found.</p>
+                            <button id="reset-filter-btn" class="mt-2 text-purple-600 text-sm font-medium hover:underline">Clear Filter</button>
+                        </div>
+                    </div>
+
+            </div>
+        </main>
 		<Footer />
+
+        <style>
+            .sidebar-btn.active {
+                background-color: rgb(243 244 246);
+                color: rgb(126 34 206);
+                font-weight: 600;
+                border-left-color: rgb(126 34 206);
+            }
+            :global(.dark) .sidebar-btn.active {
+                background-color: rgba(39, 39, 42, 0.5);
+                color: rgb(192 132 252);
+            }
+            
+            /* Sticky Filter Buttons */
+            .sticky-filter-btn.active {
+                background-color: rgb(147 51 234);
+                color: white;
+            }
+            :global(.dark) .sticky-filter-btn.active {
+                background-color: rgb(147 51 234);
+                color: white;
+            }
+            
+            /* Filter Dropdown Items */
+            .filter-dropdown-item.active {
+                background-color: rgb(243 232 255);
+                color: rgb(126 34 206);
+                font-weight: 600;
+            }
+            :global(.dark) .filter-dropdown-item.active {
+                background-color: rgba(126, 34, 206, 0.2);
+                color: rgb(192 132 252);
+            }
+            
+            .article-card.visible { opacity: 1; transform: translateY(0); }
+            .article-card.hidden-card { display: none; }
+        </style>
+        
+        <script define:vars={{ searchIndex }}>
+            window.blogData = searchIndex;
+        </script>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // 元素获取
+                const searchInput = document.getElementById('search-input');
+                const clearBtn = document.getElementById('search-clear');
+                
+                // 侧边栏元素
+                const filterSidebarBtn = document.getElementById('filter-sidebar-btn');
+                const filterSidebar = document.getElementById('filter-sidebar');
+                const filterSidebarOverlay = document.getElementById('filter-sidebar-overlay');
+                const filterSidebarClose = document.getElementById('filter-sidebar-close');
+                
+                const articleCards = document.querySelectorAll('.article-card');
+                const noResults = document.getElementById('no-results');
+                const sidebarBtns = document.querySelectorAll('.sidebar-btn');
+                const stickyFilterBtns = document.querySelectorAll('.sticky-filter-btn');
+                const resetBtn = document.getElementById('reset-filter-btn');
+
+                let currentSearch = '';
+                let activeFilter = { type: 'topic', value: 'all' };
+                let sidebarOpen = false;
+
+                // Initial Stagger
+                articleCards.forEach((el, i) => setTimeout(() => el.classList.add('visible'), i * 50));
+
+                // 侧边栏逻辑
+                function toggleSidebar(show) {
+                    sidebarOpen = show;
+                    if (show) {
+                        filterSidebar?.classList.remove('-translate-x-full');
+                        filterSidebarOverlay?.classList.remove('opacity-0', 'invisible');
+                        filterSidebarOverlay?.classList.add('opacity-100', 'visible');
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        filterSidebar?.classList.add('-translate-x-full');
+                        filterSidebarOverlay?.classList.add('opacity-0', 'invisible');
+                        filterSidebarOverlay?.classList.remove('opacity-100', 'visible');
+                        document.body.style.overflow = '';
+                    }
+                }
+
+                filterSidebarBtn?.addEventListener('click', () => toggleSidebar(true));
+                filterSidebarClose?.addEventListener('click', () => toggleSidebar(false));
+                filterSidebarOverlay?.addEventListener('click', () => toggleSidebar(false));
+
+                function filterArticles() {
+                    let visibleCount = 0;
+                    articleCards.forEach((card) => {
+                        const el = card;
+                        const id = el.dataset.id;
+                        const data = window.blogData.find(p => p.id === id);
+                        if (!data) return;
+
+                        let searchMatch = true;
+                        if (currentSearch) {
+                            const term = currentSearch.toLowerCase();
+                            searchMatch = data.title.toLowerCase().includes(term) || 
+                                          data.description.toLowerCase().includes(term) ||
+                                          data.body.toLowerCase().includes(term);
+                        }
+
+                        let filterMatch = false;
+                        if (activeFilter.type === 'topic' && activeFilter.value === 'all') {
+                            filterMatch = true;
+                        } else if (activeFilter.type === 'topic') {
+                            const cat = el.dataset.category;
+                            const mainCat = el.dataset.mainCategory;
+                            if (activeFilter.value === 'math' || activeFilter.value === 'cs' || activeFilter.value === 'soc') {
+                                filterMatch = (mainCat === activeFilter.value);
+                            } else {
+                                filterMatch = (cat === activeFilter.value);
+                            }
+                        } else if (activeFilter.type === 'author') {
+                            filterMatch = (el.dataset.author === activeFilter.value);
+                        } else if (activeFilter.type === 'tag') {
+                            const tags = el.dataset.tags ? el.dataset.tags.split(',') : [];
+                            filterMatch = tags.includes(activeFilter.value);
+                        }
+
+                        if (searchMatch && filterMatch) {
+                            el.classList.remove('hidden-card');
+                            requestAnimationFrame(() => {
+                                el.classList.remove('opacity-0', 'translate-y-4');
+                                el.classList.add('visible');
+                            });
+                            visibleCount++;
+                        } else {
+                            el.classList.remove('visible');
+                            el.classList.add('opacity-0', 'translate-y-4');
+                            setTimeout(() => {
+                                if (!el.classList.contains('visible')) el.classList.add('hidden-card');
+                            }, 300);
+                        }
+                    });
+                    if (visibleCount === 0) noResults.classList.remove('hidden');
+                    else noResults.classList.add('hidden');
+                }
+
+                function updateActiveUI() {
+                    const allBtns = [...sidebarBtns, ...stickyFilterBtns];
+                    allBtns.forEach(btn => {
+                        const type = btn.dataset.type;
+                        const val = btn.dataset.filter;
+                        if (type === activeFilter.type && val === activeFilter.value) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                }
+
+                const handleFilterClick = (e) => {
+                    const btn = e.currentTarget;
+                    const type = btn.dataset.type;
+                    const filter = btn.dataset.filter;
+                    if (type && filter) {
+                        activeFilter = { type, value: filter };
+                        updateActiveUI();
+                        filterArticles();
+                        toggleSidebar(false); // 关闭侧边栏
+                    }
+                };
+
+                sidebarBtns.forEach(b => b.addEventListener('click', handleFilterClick));
+                stickyFilterBtns.forEach(b => b.addEventListener('click', handleFilterClick));
+                
+                // 搜索逻辑
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        currentSearch = e.target.value;
+                        if (currentSearch.length > 0) clearBtn?.classList.remove('hidden');
+                        else clearBtn?.classList.add('hidden');
+                        filterArticles();
+                    });
+                }
+                
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        if (searchInput) searchInput.value = '';
+                        currentSearch = '';
+                        clearBtn.classList.add('hidden');
+                        filterArticles();
+                    });
+                }
+                
+                // Cmd/Ctrl + K 聚焦搜索
+                document.addEventListener('keydown', (e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                        e.preventDefault();
+                        searchInput?.focus();
+                        searchInput?.select();
+                    }
+                });
+                
+                resetBtn?.addEventListener('click', () => {
+                    activeFilter = { type: 'topic', value: 'all' };
+                    currentSearch = '';
+                    if (searchInput) searchInput.value = '';
+                    clearBtn?.classList.add('hidden');
+                    updateActiveUI();
+                    filterArticles();
+                });
+            });
+        </script>
 	</body>
 </html>

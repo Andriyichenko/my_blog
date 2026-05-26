@@ -10,9 +10,24 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.13",
+    "@astrojs/react": "^4.4.2",
     "@astrojs/rss": "^4.0.14",
     "@astrojs/sitemap": "^3.6.0",
+    "@supabase/supabase-js": "^2.87.3",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "astro": "^5.16.5",
-    "sharp": "^0.34.3"
+    "dotenv": "^17.2.3",
+    "openai": "^6.13.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-force-graph-2d": "^1.29.0",
+    "recharts": "^3.6.0",
+    "rehype-mathjax": "^7.1.0",
+    "remark-math": "^6.0.0",
+    "sharp": "^0.34.3",
+    "tailwindcss": "^4.1.18"
   }
 }

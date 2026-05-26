@@ -1,20 +1,29 @@
 ---
-import { type CollectionEntry, getCollection, render } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
+import { getSmartRecommendations } from '../../utils/ai-recommendation';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
 	return posts.map((post) => ({
 		params: { slug: post.id },
-		props: post,
+		props: { post, posts },
 	}));
 }
-type Props = CollectionEntry<'blog'>;
 
-const post = Astro.props;
-const { Content } = await render(post);
+const { post, posts } = Astro.props;
+const { Content, headings } = await render(post);
+
+// Generate AI Recommendations
+const relatedPosts = await getSmartRecommendations(post, posts);
 ---
 
-<BlogPost {...post.data}>
+<BlogPost 
+    {...post.data} 
+    id={post.id}
+    body={post.body}
+    headings={headings}
+    relatedPosts={relatedPosts} 
+>
 	<Content />
 </BlogPost>

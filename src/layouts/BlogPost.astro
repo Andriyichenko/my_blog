@@ -1,86 +1,261 @@
 ---
+import Layout from './Layout.astro';
 import { Image } from 'astro:assets';
-import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
+import FloatingTOC from '../components/FloatingTOC.jsx';
+import profileImg from '../assets/port_img.jpg'; 
 
-type Props = CollectionEntry<'blog'>['data'];
+// 支持 MDX layout frontmatter 和直接 props 两种方式
+const frontmatter = Astro.props.frontmatter || Astro.props;
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { 
+    id, 
+    title, 
+    subtitle,
+    description, 
+    pubDate, 
+    updatedDate, 
+    heroImage, 
+    author = "Andre YI", 
+    authorImage,
+    subcategory,
+    tags = [],
+    relatedPosts = [],
+    body = ""
+} = frontmatter;
+
+// headings 从 Astro.props 获取（MDX 自动提供）
+const headings = Astro.props.headings || frontmatter.headings || [];
+
+console.log('BlogPost props:', { title, subtitle });
+
+const wordCount = body ? body.split(/\s+/g).length : 0;
+const readingTime = Math.ceil(wordCount / 200) || 5;
+const safePubDate = pubDate ? new Date(pubDate) : new Date();
 ---
 
-<html lang="en">
-	<head>
-		<BaseHead title={title} description={description} />
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
-	</head>
+<Layout title={title} description={description}>
+    {/* 顶部栏：返回 + 作者 + Like/Share */}
+    <div class="sticky top-0 z-40 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-zinc-200/60 dark:border-zinc-800/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-start py-2">
+                <a href="/blog" aria-label="返回" class="flex items-center justify-center w-10 h-10 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all border border-transparent hover:border-purple-200/60 dark:hover:border-purple-700/60 shadow-sm">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </a>
+            </div>
+        </div>
+    </div>
 
-	<body>
-		<Header />
-		<main>
-			<article>
-				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
-				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<h1>{title}</h1>
-						<hr />
-					</div>
-					<slot />
-				</div>
-			</article>
-		</main>
-		<Footer />
-	</body>
-</html>
+    <article class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 relative">
+        
+        {/* --- Hero Section --- */}
+        <div class="max-w-3xl mx-auto text-center mb-12">
+            {subcategory && (
+                <div class="flex justify-center mb-6">
+                    <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold uppercase tracking-wider rounded-full">
+                        {subcategory}
+                    </span>
+                </div>
+            )}
+
+            <h1 class="text-4xl md:text-5xl font-serif font-bold text-zinc-900 dark:text-white mb-4 leading-tight">
+                {title}
+            </h1>
+            
+            {subtitle && (
+                <p class="text-xl md:text-2xl font-serif italic text-zinc-500 dark:text-zinc-400 -mt-2 mb-6">
+                    {subtitle}
+                </p>
+            )}
+            
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-zinc-500 dark:text-zinc-400 text-sm py-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-zinc-800 shadow-sm">
+                        <Image src={authorImage || profileImg} alt={author} class="w-full h-full object-cover" width={32} height={32} />
+                    </div>
+                    <span class="font-medium text-zinc-900 dark:text-zinc-200">{author}</span>
+                </div>
+                <span class="hidden md:inline">•</span>
+                <div class="flex items-center gap-4">
+                    <FormattedDate date={safePubDate} />
+                    <span>{readingTime} min read</span>
+                </div>
+            </div>
+
+            {/* Like / Share 区域 */}
+            <div class="mt-4 flex items-center justify-center gap-3">
+                <button id="like-btn-hero" aria-label="Like" class="flex items-center gap-2 px-4 py-2 rounded-full border border-rose-200/70 dark:border-rose-800/60 text-rose-500 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm hover:shadow active:scale-95">
+                    <span id="like-icon-hero" class="text-base">♡</span>
+                    <span id="like-count-hero" class="text-sm font-semibold">124</span>
+                </button>
+                <button id="share-btn-hero" aria-label="Share" class="flex items-center gap-2 px-4 py-2 rounded-full border border-blue-200/70 dark:border-blue-800/60 text-blue-500 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all shadow-sm hover:shadow active:scale-95">
+                    <span class="text-base">↗</span>
+                    <span class="text-sm font-semibold">Share</span>
+                </button>
+            </div>
+            
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-7xl mx-auto">
+            
+            {/* --- Main Content (Prose) --- */}
+            <div class="lg:col-span-8 lg:col-start-3">
+
+                <div class="prose prose-lg prose-zinc dark:prose-invert max-w-none prose-math">
+                    
+                    <slot />
+                    
+                </div>
+
+                {/* --- Bottom Engagement Bar (简约版) --- */}
+                <div class="mt-16 py-6 border-t border-zinc-200 dark:border-zinc-800">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            {/* Like 按钮 - 圆角胶囊 */}
+                            <button id="like-btn-bottom" aria-label="Like" class="group flex items-center gap-2 pl-3 pr-3 py-2 rounded-full border border-rose-200/70 dark:border-rose-800/60 text-rose-500 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm hover:shadow active:scale-95">
+                                <span id="like-icon-bottom" class="text-base">♡</span>
+                                <span id="like-count-bottom" class="text-sm font-semibold">124</span>
+                            </button>
+                            
+                            {/* Share 按钮 - 圆角胶囊 */}
+                            <button id="share-btn-bottom" aria-label="Share" class="group flex items-center gap-2 pl-3 pr-3 py-2 rounded-full border border-blue-200/70 dark:border-blue-800/60 text-blue-500 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all shadow-sm hover:shadow">
+                                <span class="text-base">↗</span>
+                                <span class="text-sm font-semibold">Share</span>
+                            </button>
+                        </div>
+                        
+                        <a href="/blog" class="flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                            <span>更多笔记</span>
+                            <span class="font-serif">→</span>
+                        </a>
+                    </div>
+                </div>
+
+                {/* --- Tags --- */}
+                {tags.length > 0 && (
+                    <div class="mt-8">
+                        <div class="flex flex-wrap gap-2">
+                            {tags.map((tag: string) => (
+                                <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 transition-colors cursor-default">#{tag}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* --- Desktop TOC 占位列 --- */}
+            <div class="hidden xl:block col-span-2"></div>
+
+        </div>
+
+        {/* --- FloatingTOC Component (Desktop & Mobile) --- */}
+        <FloatingTOC headings={headings} client:load />
+
+        {/* --- Up Next Queue --- */}
+        {relatedPosts.length > 0 && (
+            <div class="max-w-3xl mx-auto mt-24 pt-12 border-t border-zinc-200 dark:border-zinc-800 pb-24">
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="text-2xl font-serif font-bold text-zinc-900 dark:text-white">Up Next</h3>
+                    <a href="/blog" class="text-sm font-medium text-purple-600 hover:text-purple-500">View all</a>
+                </div>
+                <div class="space-y-4">
+                    {relatedPosts.map((post: any) => (
+                        <a href={`/blog/${post.id}/`} class="group flex items-center gap-4 p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700">
+                            <div class="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-zinc-200 dark:bg-zinc-800 relative">
+                                {post.data.heroImage ? (
+                                    <img src={post.data.heroImage.src} alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                ) : (
+                                    <div class="w-full h-full flex items-center justify-center text-xl font-serif italic text-zinc-400">
+                                        {post.data.title.charAt(0)}
+                                    </div>
+                                )}
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <h4 class="font-bold text-base text-zinc-900 dark:text-white truncate group-hover:text-purple-600 transition-colors">
+                                    {post.data.title}
+                                </h4>
+                                <p class="text-xs text-zinc-500 line-clamp-1">{post.data.description}</p>
+                            </div>
+                            <div class="shrink-0 text-zinc-300 group-hover:text-purple-600 transition-colors transform group-hover:translate-x-1">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        )}
+
+    </article>
+</Layout>
+
+<script define:vars={{ id }}>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Progress Bar
+        const progressBar = document.getElementById('progress-bar');
+        const progressPill = document.getElementById('progress-pill');
+        const updateProgress = () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            if(progressBar) progressBar.style.width = scrollPercent + '%';
+            if(progressPill) progressPill.textContent = `${Math.round(scrollPercent)}%`;
+        };
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        updateProgress();
+
+        // Engagement Logic (Like/Share)
+        const storageKey = `liked_${id}`;
+        let isLiked = localStorage.getItem(storageKey) === 'true';
+        let likeCount = 124;
+
+        function updateLikeUI() {
+            const heroBtn = document.getElementById('like-btn-hero');
+            const bottomBtn = document.getElementById('like-btn-bottom');
+            const heroCount = document.getElementById('like-count-hero');
+            const bottomCount = document.getElementById('like-count-bottom');
+            const heroIcon = document.getElementById('like-icon-hero');
+            const bottomIcon = document.getElementById('like-icon-bottom');
+
+            if (heroCount) heroCount.textContent = likeCount.toString();
+            if (bottomCount) bottomCount.textContent = likeCount.toString();
+
+            const likedClasses = ['bg-rose-50', 'dark:bg-rose-900/30', 'shadow-lg', 'shadow-rose-500/15', 'border-rose-300/80', 'dark:border-rose-600/70', 'scale-[1.01]'];
+
+            [heroBtn, bottomBtn].forEach(btn => {
+                if(!btn) return;
+                if (isLiked) btn.classList.add(...likedClasses);
+                else btn.classList.remove(...likedClasses);
+            });
+
+            const setIcon = (el) => {
+                if (!el) return;
+                el.textContent = isLiked ? '♥' : '♡';
+            };
+            setIcon(heroIcon);
+            setIcon(bottomIcon);
+        }
+        updateLikeUI();
+
+        const handleLike = () => {
+            isLiked = !isLiked;
+            localStorage.setItem(storageKey, isLiked);
+            likeCount = Math.max(0, likeCount + (isLiked ? 1 : -1));
+            updateLikeUI();
+        };
+
+        document.getElementById('like-btn-hero')?.addEventListener('click', handleLike);
+        document.getElementById('like-btn-bottom')?.addEventListener('click', handleLike);
+
+        const handleShare = async () => {
+            if (navigator.share) {
+                try { await navigator.share({ title: document.title, url: window.location.href }); } catch (err) {}
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Copied to clipboard!');
+            }
+        };
+
+        document.getElementById('share-btn-hero')?.addEventListener('click', handleShare);
+        document.getElementById('share-btn-bottom')?.addEventListener('click', handleShare);
+    });
+</script>
