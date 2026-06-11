@@ -1,8 +1,7 @@
 ---
-layout: ../../layouts/BlogPost.astro
-title: "伊藤引理 (Ito's Lemma)：随机微积分的链式法则"
+title: "TEST随机微积分的链式法则"
 description: "为什么微积分中的泰勒展开在随机过程中失效了？深入解析伊藤公式的几何直观与金融应用。"
-pubDate: "2025-12-16"
+pubDate: "2026-06-11"
 subcategory: "Calculus & Analysis"
 tags: ["随机微积分", "伊藤引理", "金融数学", "Black-Scholes"]
 ---
@@ -56,7 +55,7 @@ $$
 
 <div className="mt-4 pt-4 border-t border-blue-200 text-blue-900 text-sm">
   <strong>注意看：</strong>
-  {`括号里的 $\frac{1}{2} \sigma_t^2 \frac{\partial^2 f}{\partial x^2}$ 就是相比于普通链式法则多出来的那一项（Ito term）。`}
+  括号里的 $\frac{1}{2} \sigma_t^2 \frac{\partial^2 f}{\partial x^2}$ 就是相比于普通链式法则多出来的那一项（Ito term）。
 </div>
 
 ## 3. 推导速览 (Heuristic Derivation)
@@ -64,7 +63,7 @@ $$
 我们利用二维泰勒展开来“手推”一下。设 $f(t, x)$，展开如下：
 
 $$
-{`df = \frac{\partial f}{\partial t} dt + \frac{\partial f}{\partial x} dx + \frac{1}{2} \frac{\partial^2 f}{\partial x^2} (dx)^2 + \dots`}
+df = \frac{\partial f}{\partial t} dt + \frac{\partial f}{\partial x} dx + \frac{1}{2} \frac{\partial^2 f}{\partial x^2} (dx)^2 + \dots
 $$
 
 将 $dx = \mu dt + \sigma dW$ 代入 $(dx)^2$：
@@ -92,13 +91,13 @@ $$
 dS_t = \mu S_t dt + \sigma S_t dW_t
 $$
 
-如果不使用伊藤引理，直接像解普通方程一样解 {`$\frac{dS}{S} = \dots$`}，你会得到错误的 {`$S_t = S_0 e^{\mu t + \sigma W_t}$`}。
+如果不使用伊藤引理，直接像解普通方程一样解 $\frac{dS}{S} = \dots$，你会得到错误的 $S_t = S_0 e^{\mu t + \sigma W_t}$。
 
-正确的做法是运用伊藤引理。令 {`$f(t, S_t) = \ln(S_t)$`}。我们来计算偏导数：
+正确的做法是运用伊藤引理。令 $f(t, S_t) = \ln(S_t)$。我们来计算偏导数：
 
-- {`$\dfrac{\partial f}{\partial S} = \dfrac{1}{S}$`}
-- {`$\dfrac{\partial^2 f}{\partial S^2} = -\dfrac{1}{S^2}$`}
-- {`$\dfrac{\partial f}{\partial t} = 0$`}
+- $\dfrac{\partial f}{\partial S} = \dfrac{1}{S}$
+- $\dfrac{\partial^2 f}{\partial S^2} = -\dfrac{1}{S^2}$
+- $\dfrac{\partial f}{\partial t} = 0$
 
 代入伊藤公式：
 
@@ -118,9 +117,9 @@ $$
 两边积分，得到最终解：
 
 <div className="p-4 border-2 border-gray-200 rounded-lg text-center my-6">
-  {`$$
+  $$
   S_t = S_0 \exp\left( (\mu - \frac{1}{2}\sigma^2)t + \sigma W_t \right)
-  $$`}
+  $$
 </div>
 
 <div className="text-sm text-gray-500">
