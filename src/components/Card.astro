@@ -15,7 +15,6 @@ interface Props extends HTMLAttributes<'a'> {
     author?: string;
     authorImage?: ImageMetadata;
     class?: string;
-    // =====【新增：社交统计 Props】=====
     likeCount?: number;
     shareCount?: number;
 }
@@ -31,8 +30,8 @@ const {
     author = "Alex",
     authorImage = defaultAvatar,
     class: className, 
-    likeCount = 0,    // 默认点赞数为 0
-    shareCount = 0,   // 默认分享数为 0
+    likeCount = 0,
+    shareCount = 0,
     ...props 
 } = Astro.props;
 
@@ -48,7 +47,6 @@ const horizontalClasses = "flex flex-row items-center p-4 rounded-xl h-32 md:h-3
 
 const activeClasses = variant === 'horizontal' ? horizontalClasses : verticalClasses;
 
-// 把 author 名字转换成文件名，用于动态 src 判断
 const authorSlug = author.toLowerCase().replace(/ /g, '-');
 ---
 
@@ -73,7 +71,6 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                         </p>
                     </div>
 
-                    {/* 箭头图标 */}
                     <div class="shrink-0" aria-hidden="true">
                         <div class="w-8 h-8 rounded-full bg-surface/50 flex items-center justify-center text-on-surface-variant group-hover:bg-primary group-hover:text-on-primary transition-all duration-300">
                             <svg class="w-4 h-4 transform group-hover:-rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +80,6 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                     </div>
                 </div>
                 
-                {/* Footer Row: Tags + Stats + Author */}
                 <div class="flex items-center justify-between mt-auto pt-1">
                     {tags.length > 0 && (
                         <div class="flex flex-wrap gap-1.5">
@@ -95,29 +91,20 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                         </div>
                     )}
                     
-                    {/* 右侧数据和作者对齐容器 */}
-                    <div class="flex items-center gap-3 ml-auto">
-                        {/* =====【新增：横版社交统计】===== */}
-                        <div class="flex items-center gap-2 text-[11px] text-on-surface-variant/50">
-                            <span class="flex items-center gap-0.5" title="点赞数">❤️ {likeCount}</span>
-                            <span class="flex items-center gap-0.5" title="分享数">🔗 {shareCount}</span>
+                    {/* =====【已修饰：去掉了此处的红心和链接统计组件，恢复极简对齐】===== */}
+                    <div class="flex items-center gap-2 pl-2 border-l border-outline/10 ml-auto">
+                        <div class="w-5 h-5 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
+                            <Image
+                                src={defaultAvatar}
+                                alt={author}
+                                width={20}
+                                height={20}
+                                class="w-full h-full object-cover"
+                            />
                         </div>
-
-                        {/* Author Badge */}
-                        <div class="flex items-center gap-2 pl-2 border-l border-outline/10">
-                            <div class="w-5 h-5 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
-                                <Image
-                                    src={defaultAvatar}
-                                    alt={author}
-                                    width={20}
-                                    height={20}
-                                    class="w-full h-full object-cover"
-                                />
-                            </div>
-                            <span class="text-xs font-medium text-on-surface-variant truncate max-w-[80px]">
-                                {author}
-                            </span>
-                        </div>
+                        <span class="text-xs font-medium text-on-surface-variant truncate max-w-[80px]">
+                            {author}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -151,27 +138,18 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                         </div>
                     )}
                     
-                    {/* 右侧数据和作者对齐容器 */}
-                    <div class="flex items-center gap-4">
-                        {/* =====【新增：竖版社交统计】===== */}
-                        <div class="flex items-center gap-2.5 text-xs text-on-surface-variant/50">
-                            <span class="flex items-center gap-1" title="点赞数">❤️ {likeCount}</span>
-                            <span class="flex items-center gap-1" title="分享数">🔗 {shareCount}</span>
+                    {/* =====【已修饰：去掉了此处的红心和链接统计组件，恢复极简对齐】===== */}
+                    <div class="flex items-center gap-2 pl-3 border-l border-outline/10">
+                        <div class="w-6 h-6 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
+                            <Image
+                                src={authorImage}
+                                alt={author}
+                                width={24}
+                                height={24}
+                                class="w-full h-full object-cover"
+                            />
                         </div>
-
-                        {/* Author Badge */}
-                        <div class="flex items-center gap-2 pl-3 border-l border-outline/10">
-                            <div class="w-6 h-6 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
-                                <Image
-                                    src={authorImage}
-                                    alt={author}
-                                    width={24}
-                                    height={24}
-                                    class="w-full h-full object-cover"
-                                />
-                            </div>
-                            <span class="text-sm font-medium text-on-surface-variant">{author}</span>
-                        </div>
+                        <span class="text-sm font-medium text-on-surface-variant">{author}</span>
                     </div>
                 </div>
             </div>

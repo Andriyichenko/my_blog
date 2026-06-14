@@ -14,6 +14,10 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
+
+// 提取公开的环境变量传给客户端模板
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 ---
 
 <BlogPost
@@ -29,11 +33,8 @@ const { Content, headings } = await render(post);
 <script>
     import { createClient } from '@supabase/supabase-js';
 
-    // 去掉 define:vars 捆绑，直接在标准的 Vite 打包脚本内读取 PUBLIC_ 密钥
     const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-
-    // 极其平滑且精准地抓取当前页面文章的 slug 标识
     const currentSlug = window.location.pathname.replace(/^\/blog\/|\/$/g, '');
 
     if (supabaseUrl && supabaseAnonKey) {
@@ -42,69 +43,73 @@ const { Content, headings } = await render(post);
         async function loadAiRecommendations() {
             try {
                 const container = document.getElementById('ai-recommendations');
+                const section = document.getElementById('ai-rec-section');
                 if (!container) return;
 
                 console.log(`[Rec] 正在为文章发起向量查询: "${currentSlug}"`);
 
-                // 1. 获取当前文章对应的 Embedding
+                // ======【🔥 核心修复：改用 maybeSingle() 杜绝 406 报错】======
                 const { data: currentPostVector, error: vecError } = await supabase
                     .from('post_embeddings')
                     .select('embedding')
                     .eq('slug', currentSlug)
-                    .single();
+                    .maybeSingle(); // 即使查到 0 条数据，也只会返回 null，而不会抛出 406 HTTP 异常
 
                 if (vecError) throw vecError;
 
-                if (currentPostVector?.embedding) {
-                    // 2. 远程调用更新后的 RPC 函数
-                    const { data, error: rpcError } = await supabase.rpc('match_similar_posts', {
-                        query_embedding: currentPostVector.embedding,
-                        match_threshold: 0.35,
-                        match_count: 4
-                    });
+                // 如果该文章是本地新写的，云端数据库里还没有它的向量，则优雅地打印提示并直接退出
+                if (!currentPostVector || !currentPostVector.embedding) {
+                    console.log(`[Rec] 提示：文章 "${currentSlug}" 属于本地新内容，数据库中暂无其特征向量。待部署上线触发 MLOps 管道后将自动补全。`);
+                    if (section) section.classList.add('hidden'); // 隐藏整个推荐板块
+                    return;
+                }
+                // ==========================================================
 
-                    if (rpcError) throw rpcError;
+                // 如果找到了向量，则照常请求 RPC 进行智能匹配
+                const { data, error: rpcError } = await supabase.rpc('match_similar_posts', {
+                    query_embedding: currentPostVector.embedding,
+                    match_threshold: 0.35,
+                    match_count: 4
+                });
 
-                    if (data) {
-                        console.log("[Rec] Supabase RPC 响应成功 (200)");
+                if (rpcError) throw rpcError;
+
+                if (data) {
+                    console.log("[Rec] Supabase RPC 响应成功 (200)");
+                    
+                    const recommendedPosts = typeof data === 'string' ? JSON.parse(data) : data;
+
+                    // 过滤掉文章自身
+                    const filteredPosts = recommendedPosts
+                        .filter((p: any) => p.res_slug !== currentSlug)
+                        .slice(0, 3);
+
+                    // 执行 DOM 渲染
+                    if (filteredPosts.length > 0 && section) {
+                        container.innerHTML = '';
+                        section.classList.remove('hidden'); // 确保板块显示
                         
-                        // 安全转换可能存在的纯文本响应
-                        const recommendedPosts = typeof data === 'string' ? JSON.parse(data) : data;
-
-                        // 3. 过滤掉当前正在阅读的这篇文章本身
-                        // 核心注意：因为我们在 SQL 里把列名改成了 res_slug，这里相应地使用 p.res_slug 访问
-                        const filteredPosts = recommendedPosts
-                            .filter((p: any) => p.res_slug !== currentSlug)
-                            .slice(0, 3);
-
-                        // 4. 执行 DOM 注入渲染
-                        if (filteredPosts.length > 0) {
-                            container.innerHTML = '';
-                            
-                            filteredPosts.forEach((p: any) => {
-                                const cardHtml = `
-                                    <a href="/blog/${p.res_slug}" class="group block p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800/60 hover:border-purple-500/30 hover:bg-purple-500/[0.02] dark:hover:bg-purple-500/[0.01] transition-all duration-300">
-                                        <h4 class="font-bold text-gray-900 dark:text-zinc-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors text-base truncate">
-                                            ${p.res_title}
-                                        </h4>
-                                        <p class="text-xs text-gray-500 dark:text-zinc-400/80 line-clamp-2 mt-1.5 leading-relaxed">
-                                            ${p.res_description || '暂无文章描述...'}
-                                        </p>
-                                    </a>
-                                `;
-                                container.insertAdjacentHTML('beforeend', cardHtml);
-                            });
-                            console.log("[Rec] 智能推荐区域渲染完美就绪。");
-                        }
+                        filteredPosts.forEach((p: any) => {
+                            const cardHtml = `
+                                <a href="/blog/${p.res_slug}" class="group block p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800/60 hover:border-purple-500/30 hover:bg-purple-500/[0.02] dark:hover:bg-purple-500/[0.01] transition-all duration-300">
+                                    <h4 class="font-bold text-gray-900 dark:text-zinc-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors text-base truncate">
+                                        ${p.res_title}
+                                    </h4>
+                                    <p class="text-xs text-gray-500 dark:text-zinc-400/80 line-clamp-2 mt-1.5 leading-relaxed">
+                                        ${p.res_description || '暂无文章描述...'}
+                                    </p>
+                                </a>
+                            `;
+                            container.insertAdjacentHTML('beforeend', cardHtml);
+                        });
+                        console.log("[Rec] 智能推荐区域渲染完美就绪。");
                     }
                 }
             } catch (e) {
-                console.error("[Rec] 推荐引擎遭遇意外中断:", e);
+                print("[Rec] 推荐引擎遭遇意外中断，已启动降级不影响正常浏览:", e);
             }
         }
 
         loadAiRecommendations();
-    } else {
-        console.warn("[Rec] 部署提示: 客户端未检测到合法的 PUBLIC_SUPABASE 密钥，跳过推荐加载。");
     }
 </script>
