@@ -1,12 +1,40 @@
+# version: 1
+# frontend:
+#   phases:
+#     preBuild:
+#       commands: [npm ci]
+#     build:
+#       commands: [npm run build]
+#   artifacts:
+#     baseDirectory: dist
+#     files: ['**/*']
+#   cache:
+#     paths: [node_modules/**/*]
 version: 1
 frontend:
   phases:
     preBuild:
-      commands: [npm ci]
+      commands:
+        # 1. 安装 Python 机器学习所需的依赖包（需确保项目根目录下有 requirements.txt）
+        - echo "===> Installing Python ML dependencies..."
+        - pip install -r requirements.txt
+        
+        # 2. 运行训练脚本（从 Supabase 读数据并生成文件到 public/ 目录）
+        - echo "===> Running ML training script..."
+        - python train.py
+        
+        # 3. 安装前端 Astro 的依赖（你原本的 npm ci）
+        - echo "===> Installing frontend dependencies..."
+        - npm ci
     build:
-      commands: [npm run build]
+      commands:
+        # 4. 执行 Astro 打包（此时最新的模型文件已经在 public 文件夹中，会被一同编译到 dist）
+        - echo "===> Building Astro site..."
+        - npm run build
   artifacts:
     baseDirectory: dist
-    files: ['**/*']
+    files:
+      - '**/*'
   cache:
-    paths: [node_modules/**/*]
+    paths:
+      - node_modules/**/*

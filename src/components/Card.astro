@@ -1,19 +1,23 @@
 ---
+// src/components/Card.astro
 import type { HTMLAttributes } from 'astro/types';
 import { Image } from 'astro:assets';
 import defaultAvatar from '../assets/port_img.jpg'; 
 
 interface Props extends HTMLAttributes<'a'> {
-	title: string;
+    title: string;
     subtitle?: string;
-	description: string;
-	href: string;
-	tags?: string[];
-	colSpan?: '1' | '2' | '3'; 
+    description: string;
+    href: string;
+    tags?: string[];
+    colSpan?: '1' | '2' | '3'; 
     variant?: 'vertical' | 'horizontal';
     author?: string;
     authorImage?: ImageMetadata;
     class?: string;
+    // =====【新增：社交统计 Props】=====
+    likeCount?: number;
+    shareCount?: number;
 }
 
 const { 
@@ -27,6 +31,8 @@ const {
     author = "Alex",
     authorImage = defaultAvatar,
     class: className, 
+    likeCount = 0,    // 默认点赞数为 0
+    shareCount = 0,   // 默认分享数为 0
     ...props 
 } = Astro.props;
 
@@ -67,7 +73,7 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                         </p>
                     </div>
 
-                    {/* 箭头图标，加 aria-hidden 避免 Missing content 警告 */}
+                    {/* 箭头图标 */}
                     <div class="shrink-0" aria-hidden="true">
                         <div class="w-8 h-8 rounded-full bg-surface/50 flex items-center justify-center text-on-surface-variant group-hover:bg-primary group-hover:text-on-primary transition-all duration-300">
                             <svg class="w-4 h-4 transform group-hover:-rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +83,7 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                     </div>
                 </div>
                 
-                {/* Footer Row: Tags + Author */}
+                {/* Footer Row: Tags + Stats + Author */}
                 <div class="flex items-center justify-between mt-auto pt-1">
                     {tags.length > 0 && (
                         <div class="flex flex-wrap gap-1.5">
@@ -89,20 +95,29 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                         </div>
                     )}
                     
-                    {/* Author Badge */}
-                    <div class="flex items-center gap-2 pl-2 border-l border-outline/10 ml-2">
-                        <div class="w-5 h-5 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
-                            <Image
-                                src={defaultAvatar}
-                                alt={author}
-                                width={20}
-                                height={20}
-                                class="w-full h-full object-cover"
-                            />
+                    {/* 右侧数据和作者对齐容器 */}
+                    <div class="flex items-center gap-3 ml-auto">
+                        {/* =====【新增：横版社交统计】===== */}
+                        <div class="flex items-center gap-2 text-[11px] text-on-surface-variant/50">
+                            <span class="flex items-center gap-0.5" title="点赞数">❤️ {likeCount}</span>
+                            <span class="flex items-center gap-0.5" title="分享数">🔗 {shareCount}</span>
                         </div>
-                        <span class="text-xs font-medium text-on-surface-variant truncate max-w-[80px]">
-                            {author}
-                        </span>
+
+                        {/* Author Badge */}
+                        <div class="flex items-center gap-2 pl-2 border-l border-outline/10">
+                            <div class="w-5 h-5 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
+                                <Image
+                                    src={defaultAvatar}
+                                    alt={author}
+                                    width={20}
+                                    height={20}
+                                    class="w-full h-full object-cover"
+                                />
+                            </div>
+                            <span class="text-xs font-medium text-on-surface-variant truncate max-w-[80px]">
+                                {author}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -136,18 +151,27 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                         </div>
                     )}
                     
-                    {/* Author Badge */}
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
-                            <Image
-                                src={authorImage}
-                                alt={author}
-                                width={24}
-                                height={24}
-                                class="w-full h-full object-cover"
-                            />
+                    {/* 右侧数据和作者对齐容器 */}
+                    <div class="flex items-center gap-4">
+                        {/* =====【新增：竖版社交统计】===== */}
+                        <div class="flex items-center gap-2.5 text-xs text-on-surface-variant/50">
+                            <span class="flex items-center gap-1" title="点赞数">❤️ {likeCount}</span>
+                            <span class="flex items-center gap-1" title="分享数">🔗 {shareCount}</span>
                         </div>
-                        <span class="text-sm font-medium text-on-surface-variant">{author}</span>
+
+                        {/* Author Badge */}
+                        <div class="flex items-center gap-2 pl-3 border-l border-outline/10">
+                            <div class="w-6 h-6 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
+                                <Image
+                                    src={authorImage}
+                                    alt={author}
+                                    width={24}
+                                    height={24}
+                                    class="w-full h-full object-cover"
+                                />
+                            </div>
+                            <span class="text-sm font-medium text-on-surface-variant">{author}</span>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,23 @@
+name: Scheduled Amplify ML Retrain
+
+# 触发条件配置
+on:
+  schedule:
+    # 🚨 这里的 cron 语法代表：每隔一天的国际标准时间（UTC）18:00 触发
+    # 相当于日本/北京时间（UTC+9 / UTC+8）次日凌晨 03:00 / 02:00
+    - cron: '0 18 * * *'
+  
+  # 允许你在 GitHub 网页上随时手动点击按钮立刻触发测试
+  workflow_dispatch: 
+
+jobs:
+  trigger-amplify-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Wake up AWS Amplify via Secure Webhook
+      run: |
+        echo "===> Sending POST request to AWS Amplify Webhook..."
+        # 使用 curl 向秘密网址发送一个空 POST 请求，从而唤醒 Amplify 的深度学习重训流水线
+        curl -X POST -d {} "${{ secrets.AMPLIFY_WEBHOOK_URL }}"
+        echo "===> Webhook sent successfully!"

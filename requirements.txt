@@ -1,0 +1,4 @@
+supabase
+sentence-transformers
+numpy
+python-dotenv

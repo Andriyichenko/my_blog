@@ -1,0 +1,38 @@
+<script>
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+  if (supabaseUrl && supabaseAnonKey) {
+    let startTime = Date.now();
+
+    window.addEventListener('beforeunload', () => {
+      const timeSpent = (Date.now() - startTime) / 1000;
+      // 这里的 id 需对应你文章正文包裹容器的 id，请确保 HTML 中有 id="post-content"
+      const wordCount = document.getElementById('post-content')?.innerText.trim().length || 0;
+
+      // 停留超过 5 秒算有效阅读
+      if (timeSpent > 5) {
+        const payload = JSON.stringify({ 
+          word_count: wordCount, 
+          time_spent: timeSpent, 
+          url: window.location.pathname 
+        });
+
+        # 绕过 SDK，直接使用原生 fetch 配合 keepalive 冲破浏览器拦截
+        fetch(`${supabaseUrl}/rest/v1/blog_analytics`, {
+          method: 'POST',
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal' // 告诉 Supabase 插入后不返回整行数据，能极大提高传输效率
+          },
+          body: payload,
+          keepalive: true # 核心：确保在网页销毁、刷新时请求不被断开
+        });
+      }
+    });
+  } else {
+    console.warn("MLOps埋点提示: 未能在客户端检测到 PUBLIC_SUPABASE 环境变量。");
+  }
+</script>
