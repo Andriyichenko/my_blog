@@ -38,31 +38,41 @@ const spanClasses = {
 
 const baseClasses = "group relative overflow-hidden transition-all duration-300 bg-surface-variant/20 border border-outline/10 hover:bg-surface-variant/40 hover:scale-[1.01] hover:shadow-lg hover:border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2";
 const verticalClasses = `flex flex-col justify-between p-6 sm:p-8 rounded-3xl ${spanClasses[colSpan]}`;
-const horizontalClasses = "flex flex-row items-center p-4 rounded-xl h-32 md:h-36 gap-4"; // Increased height slightly for author row
+const horizontalClasses = "flex flex-row items-center p-4 rounded-xl h-32 md:h-36 gap-4";
 
 const activeClasses = variant === 'horizontal' ? horizontalClasses : verticalClasses;
+
+// 把 author 名字转换成文件名，用于动态 src 判断
+const authorSlug = author.toLowerCase().replace(/ /g, '-');
 ---
 
-<a href={href} class:list={[baseClasses, activeClasses, className]} {...props}>
-    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-500 pointer-events-none"></div>
+<a href={href} aria-label={title} class:list={[baseClasses, activeClasses, className]} {...props}>
+    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-500 pointer-events-none" aria-hidden="true"></div>
     
     {variant === 'horizontal' ? (
         <>
-            {/* Horizontal Layout (text-only, no thumbnail) */}
             <div class="flex-grow min-w-0 flex flex-col h-full py-1 gap-2">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <h3 class="text-lg font-bold text-on-surface truncate group-hover:text-primary transition-colors pr-2">
                             {title}
                         </h3>
-                        {subtitle && <p class="text-xs font-serif italic text-on-surface-variant/70 -mt-1 mb-1">{subtitle}</p>}
+                        {subtitle && (
+                            <p class="text-xs font-serif italic text-on-surface-variant/70 -mt-1 mb-1">
+                                {subtitle}
+                            </p>
+                        )}
                         <p class="text-sm text-on-surface-variant/80 line-clamp-2 mt-1">
                             {description}
                         </p>
                     </div>
-                    <div class="shrink-0">
+
+                    {/* 箭头图标，加 aria-hidden 避免 Missing content 警告 */}
+                    <div class="shrink-0" aria-hidden="true">
                         <div class="w-8 h-8 rounded-full bg-surface/50 flex items-center justify-center text-on-surface-variant group-hover:bg-primary group-hover:text-on-primary transition-all duration-300">
-                            <svg class="w-4 h-4 transform group-hover:-rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            <svg class="w-4 h-4 transform group-hover:-rotate-45 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
                         </div>
                     </div>
                 </div>
@@ -82,9 +92,17 @@ const activeClasses = variant === 'horizontal' ? horizontalClasses : verticalCla
                     {/* Author Badge */}
                     <div class="flex items-center gap-2 pl-2 border-l border-outline/10 ml-2">
                         <div class="w-5 h-5 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
-                            <Image src={authorImage} alt={author} width={20} height={20} class="w-full h-full object-cover" />
+                            <Image
+                                src={defaultAvatar}
+                                alt={author}
+                                width={20}
+                                height={20}
+                                class="w-full h-full object-cover"
+                            />
                         </div>
-                        <span class="text-xs font-medium text-on-surface-variant truncate max-w-[80px]">{author}</span>
+                        <span class="text-xs font-medium text-on-surface-variant truncate max-w-[80px]">
+                            {author}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -97,7 +115,11 @@ const activeClasses = variant === 'horizontal' ? horizontalClasses : verticalCla
                     <h3 class="text-xl sm:text-2xl font-bold text-on-surface mb-3 group-hover:text-primary transition-colors">
                         {title}
                     </h3>
-                    {subtitle && <p class="text-base sm:text-lg font-serif italic text-on-surface-variant/70 -mt-2 mb-4">{subtitle}</p>}
+                    {subtitle && (
+                        <p class="text-base sm:text-lg font-serif italic text-on-surface-variant/70 -mt-2 mb-4">
+                            {subtitle}
+                        </p>
+                    )}
                     <p class="text-on-surface-variant text-base sm:text-lg leading-relaxed mb-6">
                         {description}
                     </p>
@@ -117,7 +139,13 @@ const activeClasses = variant === 'horizontal' ? horizontalClasses : verticalCla
                     {/* Author Badge */}
                     <div class="flex items-center gap-2">
                         <div class="w-6 h-6 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
-                            <Image src={authorImage} alt={author} width={24} height={24} class="w-full h-full object-cover" />
+                            <Image
+                                src={authorImage}
+                                alt={author}
+                                width={24}
+                                height={24}
+                                class="w-full h-full object-cover"
+                            />
                         </div>
                         <span class="text-sm font-medium text-on-surface-variant">{author}</span>
                     </div>

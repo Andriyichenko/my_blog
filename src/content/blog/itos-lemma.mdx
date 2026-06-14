@@ -2,10 +2,10 @@
 title: "伊藤引理 (Ito's Lemma)：随机微积分的链式法则"
 description: "为什么微积分中的泰勒展开在随机过程中失效了？深入解析伊藤公式的几何直观与金融应用。"
 pubDate: "2025-12-16"
-subcategory: "Calculus & Analysis"
+subcategory: "Analysis"
 tags: ["随机微积分", "伊藤引理", "金融数学", "Black-Scholes"]
+author: "Andre YI"
 ---
-
 ## 引言
 
 如果说牛顿和莱布尼茨的微积分处理的是平滑的曲线，那么伊藤清（Kiyosi Itō）的随机微积分处理的就是抖动的轨迹。在经典微积分中，如果 $y=f(x)$，我们有链式法则 $dy = f'(x)dx$。但在股票价格、粒子运动等随机过程中，这个法则失效了。
@@ -30,6 +30,9 @@ tags: ["随机微积分", "伊藤引理", "金融数学", "Black-Scholes"]
 $$
 df = f'(x)dx + \frac{1}{2}f''(x)(dx)^2 + \dots
 $$
+
+**Proof.**   由 Itô 过程
+
 
 - **普通世界**：$x$ 是光滑的。当 $dt \to 0$ 时，$(dx)^2 \approx (v dt)^2 \propto dt^2$。相比于 $dt$，这是高阶无穷小，可以直接扔掉。
 - **随机世界**：$x$ 是布朗运动 $W_t$。它的波动极其剧烈，遵循 $(dW_t)^2 = dt$。这意味着二阶项和一阶时间项是同一个量级的，不能扔掉！

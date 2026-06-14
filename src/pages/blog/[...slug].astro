@@ -4,18 +4,20 @@ import BlogPost from '../../layouts/BlogPost.astro';
 import { getSmartRecommendations } from '../../utils/ai-recommendation';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => ({
-		params: { slug: post.id },
-		props: { post, posts },
-	}));
+    const posts = await getCollection('blog');
+    return posts.map((post) => ({
+        params: { slug: post.id },
+        props: { post, posts },
+    }));
 }
 
 const { post, posts } = Astro.props;
 const { Content, headings } = await render(post);
 
-// Generate AI Recommendations
 const relatedPosts = await getSmartRecommendations(post, posts);
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 ---
 
 <BlogPost 
@@ -25,5 +27,291 @@ const relatedPosts = await getSmartRecommendations(post, posts);
     headings={headings}
     relatedPosts={relatedPosts} 
 >
-	<Content />
+    <Content />
 </BlogPost>
+
+<div id="article-meta" data-slug={post.id} style="display:none"></div>
+
+<!-- 个性化推荐区块 -->
+<div id="personalized-section" style="margin: 2.5rem 0;">
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+    ">
+        <h2 style="
+            font-size: 1.3rem;
+            font-style: italic;
+            font-weight: 700;
+            color: #e9d5ff;
+            margin: 0;
+        ">为你推荐</h2>
+        <a href="/blog" style="
+            font-size: 0.9rem;
+            color: #a78bfa;
+            text-decoration: none;
+        ">查看全部 →</a>
+    </div>
+    <div id="rec-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="rec-skeleton" style="height: 72px; background: rgba(168,85,247,0.07); border-radius: 12px; animation: pulse 1.5s infinite;"></div>
+        <div class="rec-skeleton" style="height: 72px; background: rgba(168,85,247,0.07); border-radius: 12px; animation: pulse 1.5s infinite 0.2s;"></div>
+        <div class="rec-skeleton" style="height: 72px; background: rgba(168,85,247,0.07); border-radius: 12px; animation: pulse 1.5s infinite 0.4s;"></div>
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+#like-btn:hover {
+    background: rgba(168,85,247,0.25) !important;
+    border-color: rgba(168,85,247,0.6) !important;
+    transform: scale(1.03);
+}
+#share-btn:hover {
+    background: rgba(168,85,247,0.18) !important;
+    border-color: rgba(168,85,247,0.45) !important;
+    transform: scale(1.03);
+}
+#like-btn.liked {
+    background: rgba(168,85,247,0.3) !important;
+    border-color: #a855f7 !important;
+    color: #f0abfc !important;
+}
+.rec-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(168,85,247,0.15);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+}
+.rec-card:hover {
+    background: rgba(168,85,247,0.1);
+    border-color: rgba(168,85,247,0.35);
+    transform: translateX(4px);
+}
+.rec-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    font-style: italic;
+    color: #e9d5ff;
+    margin: 0 0 4px 0;
+}
+.rec-card-desc {
+    font-size: 0.82rem;
+    color: #9ca3af;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 420px;
+}
+.rec-arrow {
+    margin-left: auto;
+    color: #6b7280;
+    font-size: 1rem;
+}
+</style>
+
+<script define:vars={{ supabaseUrl, supabaseAnonKey }}>
+function getOrCreateUserId() {
+    let uid = localStorage.getItem('blog_user_id');
+    if (!uid) {
+        uid = crypto.randomUUID();
+        localStorage.setItem('blog_user_id', uid);
+    }
+    return uid;
+}
+
+const slug = document.getElementById('article-meta')?.dataset.slug
+    || window.location.pathname.split('/blog/')[1]?.replace(/\/$/, '');
+
+// ── 阅读追踪 ──────────────────────────────────────────
+async function trackReading() {
+    const user_id = getOrCreateUserId();
+    try {
+        await fetch(`${supabaseUrl}/functions/v1/update-interest`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseAnonKey}`,
+            },
+            body: JSON.stringify({ article_slug: slug, user_id })
+        });
+    } catch (err) {
+        console.error('Interest tracking failed:', err);
+    }
+}
+
+// ── 点赞 ──────────────────────────────────────────────
+const likeBtn = document.getElementById('like-btn');
+const likeIcon = document.getElementById('like-icon');
+const likeCountEl = document.getElementById('like-count');
+const likedKey = `liked_${slug}`;
+
+async function fetchLikeCount() {
+    const res = await fetch(
+        `${supabaseUrl}/rest/v1/post_stats?slug=eq.${encodeURIComponent(slug)}&select=like_count`,
+        { headers: { 'apikey': supabaseAnonKey, 'Authorization': `Bearer ${supabaseAnonKey}` } }
+    );
+    const data = await res.json();
+    return data?.[0]?.like_count ?? 0;
+}
+
+async function initLike() {
+    const count = await fetchLikeCount();
+    likeCountEl.textContent = count;
+    if (localStorage.getItem(likedKey)) {
+        likeBtn.classList.add('liked');
+        likeIcon.textContent = '♥';
+    }
+}
+
+async function toggleLike() {
+    const alreadyLiked = localStorage.getItem(likedKey);
+    const delta = alreadyLiked ? -1 : 1;
+
+    const current = parseInt(likeCountEl.textContent) || 0;
+    likeCountEl.textContent = current + delta;
+
+    if (alreadyLiked) {
+        localStorage.removeItem(likedKey);
+        likeBtn.classList.remove('liked');
+        likeIcon.textContent = '♡';
+    } else {
+        localStorage.setItem(likedKey, '1');
+        likeBtn.classList.add('liked');
+        likeIcon.textContent = '♥';
+    }
+
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_like`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({ p_slug: slug, p_delta: delta })
+    });
+
+    // 调试：如果还是不写入，打印错误
+    if (!res.ok) {
+        const err = await res.text();
+        console.error('increment_like failed:', res.status, err);
+    }
+}
+
+likeBtn?.addEventListener('click', toggleLike);
+
+// ── 分享 ──────────────────────────────────────────────
+const shareBtn = document.getElementById('share-btn');
+const shareToast = document.getElementById('share-toast');
+
+async function handleShare() {
+    const url = window.location.href;
+    const title = document.title;
+
+    if (navigator.share) {
+        try {
+            await navigator.share({ title, url });
+        } catch (_) {}
+    } else {
+        await navigator.clipboard.writeText(url);
+        shareToast.style.opacity = '1';
+        setTimeout(() => shareToast.style.opacity = '0', 2000);
+    }
+
+    // ✅ 修复：改用 increment_share，不再用 increment_like 和未定义的 delta
+    const res = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_share`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({ p_slug: slug })
+    });
+
+    if (!res.ok) {
+        const err = await res.text();
+        console.error('increment_share failed:', res.status, err);
+    }
+}
+
+shareBtn?.addEventListener('click', handleShare);
+
+// ── 个性化推荐 ─────────────────────────────────────────
+async function loadPersonalizedRecs() {
+    const recList = document.getElementById('rec-list');
+    const user_id = getOrCreateUserId();
+
+    try {
+        const profileRes = await fetch(
+            `${supabaseUrl}/rest/v1/user_profiles?user_id=eq.${user_id}&select=interest_embedding`,
+            { headers: { 'apikey': supabaseAnonKey, 'Authorization': `Bearer ${supabaseAnonKey}` } }
+        );
+        const profileData = await profileRes.json();
+        const interestEmbedding = profileData?.[0]?.interest_embedding;
+
+        let recSlugs = [];
+
+        if (interestEmbedding) {
+            const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/match_posts_for_user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': supabaseAnonKey,
+                    'Authorization': `Bearer ${supabaseAnonKey}`,
+                },
+                body: JSON.stringify({
+                    query_embedding: interestEmbedding,
+                    exclude_slug: slug,
+                    match_count: 3
+                })
+            });
+            const rpcData = await rpcRes.json();
+            recSlugs = rpcData?.map(r => r.slug) ?? [];
+        }
+
+        if (recSlugs.length === 0) {
+            recList.innerHTML = '<p style="color:#6b7280;font-size:0.9rem;">暂无个性化数据，多读几篇后将为你定制推荐 ✨</p>';
+            return;
+        }
+
+        recList.innerHTML = recSlugs.map(s => `
+            <a href="/blog/${s}" class="rec-card">
+                <div style="
+                    width: 44px; height: 44px; border-radius: 8px; flex-shrink: 0;
+                    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 1.2rem;
+                ">📝</div>
+                <div style="min-width:0">
+                    <p class="rec-card-title">${s.replace(/-/g, ' ')}</p>
+                    <p class="rec-card-desc">基于你的阅读兴趣推荐</p>
+                </div>
+                <span class="rec-arrow">›</span>
+            </a>
+        `).join('');
+
+    } catch (err) {
+        console.error('Rec failed:', err);
+        recList.innerHTML = '<p style="color:#6b7280;font-size:0.9rem;">推荐加载失败</p>';
+    }
+}
+
+// ── 初始化 ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    if (!slug) return;
+    trackReading();
+    initLike();
+    loadPersonalizedRecs();
+});
+</script>

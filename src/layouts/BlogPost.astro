@@ -27,20 +27,23 @@ const {
 // headings 从 Astro.props 获取（MDX 自动提供）
 const headings = Astro.props.headings || frontmatter.headings || [];
 
-console.log('BlogPost props:', { title, subtitle });
-
 const wordCount = body ? body.split(/\s+/g).length : 0;
 const readingTime = Math.ceil(wordCount / 200) || 5;
 const safePubDate = pubDate ? new Date(pubDate) : new Date();
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 ---
 
 <Layout title={title} description={description}>
-    {/* 顶部栏：返回 + 作者 + Like/Share */}
+    {/* 顶部栏：返回 */}
     <div class="sticky top-0 z-40 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-zinc-200/60 dark:border-zinc-800/60">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-start py-2">
                 <a href="/blog" aria-label="返回" class="flex items-center justify-center w-10 h-10 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all border border-transparent hover:border-purple-200/60 dark:hover:border-purple-700/60 shadow-sm">
-                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
                 </a>
             </div>
         </div>
@@ -71,7 +74,14 @@ const safePubDate = pubDate ? new Date(pubDate) : new Date();
             <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-zinc-500 dark:text-zinc-400 text-sm py-2">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-zinc-800 shadow-sm">
-                        <Image src={authorImage || profileImg} alt={author} class="w-full h-full object-cover" width={32} height={32} />
+                        <img
+                            src={`/authors/${author.toLowerCase().replace(/ /g, '-')}.jpg`}
+                            alt={author}
+                            width={32}
+                            height={32}
+                            class="w-full h-full object-cover object-center"
+                            onerror="this.onerror=null;this.src='/authors/default.jpg'"
+                        />
                     </div>
                     <span class="font-medium text-zinc-900 dark:text-zinc-200">{author}</span>
                 </div>
@@ -82,18 +92,35 @@ const safePubDate = pubDate ? new Date(pubDate) : new Date();
                 </div>
             </div>
 
-            {/* Like / Share 区域 */}
+            {/* Like / Share 区域：顶部红色按钮，真实绑定 Supabase */}
             <div class="mt-4 flex items-center justify-center gap-3">
-                <button id="like-btn-hero" aria-label="Like" class="flex items-center gap-2 px-4 py-2 rounded-full border border-rose-200/70 dark:border-rose-800/60 text-rose-500 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm hover:shadow active:scale-95">
+                <button
+                    id="like-btn-hero"
+                    aria-label="Like"
+                    type="button"
+                    class="flex items-center gap-2 px-4 py-2 rounded-full border border-rose-200/70 dark:border-rose-800/60 text-rose-500 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm hover:shadow active:scale-95"
+                >
                     <span id="like-icon-hero" class="text-base">♡</span>
-                    <span id="like-count-hero" class="text-sm font-semibold">124</span>
+                    <span id="like-count-hero" class="text-sm font-semibold">—</span>
                 </button>
-                <button id="share-btn-hero" aria-label="Share" class="flex items-center gap-2 px-4 py-2 rounded-full border border-blue-200/70 dark:border-blue-800/60 text-blue-500 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all shadow-sm hover:shadow active:scale-95">
+
+                <button
+                    id="share-btn-hero"
+                    aria-label="Share"
+                    type="button"
+                    class="flex items-center gap-2 px-4 py-2 rounded-full border border-blue-200/70 dark:border-blue-800/60 text-blue-500 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all shadow-sm hover:shadow active:scale-95"
+                >
                     <span class="text-base">↗</span>
                     <span class="text-sm font-semibold">Share</span>
                 </button>
             </div>
-            
+
+            <div
+                id="share-toast-hero"
+                class="mt-3 text-sm text-green-500 opacity-0 transition-opacity duration-300"
+            >
+                链接已复制！
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-7xl mx-auto">
@@ -102,26 +129,39 @@ const safePubDate = pubDate ? new Date(pubDate) : new Date();
             <div class="lg:col-span-8 lg:col-start-3">
 
                 <div class="prose prose-lg prose-zinc dark:prose-invert max-w-none prose-math">
-                    
                     <slot />
-                    
                 </div>
 
-                {/* --- Bottom Engagement Bar (简约版) --- */}
+                {/* --- Bottom Engagement Bar --- */}
                 <div class="mt-16 py-6 border-t border-zinc-200 dark:border-zinc-800">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            {/* Like 按钮 - 圆角胶囊 */}
-                            <button id="like-btn-bottom" aria-label="Like" class="group flex items-center gap-2 pl-3 pr-3 py-2 rounded-full border border-rose-200/70 dark:border-rose-800/60 text-rose-500 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm hover:shadow active:scale-95">
+                            <button
+                                id="like-btn-bottom"
+                                aria-label="Like"
+                                type="button"
+                                class="group flex items-center gap-2 pl-3 pr-3 py-2 rounded-full border border-rose-200/70 dark:border-rose-800/60 text-rose-500 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm hover:shadow active:scale-95"
+                            >
                                 <span id="like-icon-bottom" class="text-base">♡</span>
-                                <span id="like-count-bottom" class="text-sm font-semibold">124</span>
+                                <span id="like-count-bottom" class="text-sm font-semibold">—</span>
                             </button>
                             
-                            {/* Share 按钮 - 圆角胶囊 */}
-                            <button id="share-btn-bottom" aria-label="Share" class="group flex items-center gap-2 pl-3 pr-3 py-2 rounded-full border border-blue-200/70 dark:border-blue-800/60 text-blue-500 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all shadow-sm hover:shadow">
+                            <button
+                                id="share-btn-bottom"
+                                aria-label="Share"
+                                type="button"
+                                class="group flex items-center gap-2 pl-3 pr-3 py-2 rounded-full border border-blue-200/70 dark:border-blue-800/60 text-blue-500 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all shadow-sm hover:shadow"
+                            >
                                 <span class="text-base">↗</span>
                                 <span class="text-sm font-semibold">Share</span>
                             </button>
+
+                            <span
+                                id="share-toast-bottom"
+                                class="text-sm text-green-500 opacity-0 transition-opacity duration-300"
+                            >
+                                链接已复制！
+                            </span>
                         </div>
                         
                         <a href="/blog" class="flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
@@ -136,7 +176,9 @@ const safePubDate = pubDate ? new Date(pubDate) : new Date();
                     <div class="mt-8">
                         <div class="flex flex-wrap gap-2">
                             {tags.map((tag: string) => (
-                                <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 transition-colors cursor-default">#{tag}</span>
+                                <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 transition-colors cursor-default">
+                                    #{tag}
+                                </span>
                             ))}
                         </div>
                     </div>
@@ -145,10 +187,9 @@ const safePubDate = pubDate ? new Date(pubDate) : new Date();
 
             {/* --- Desktop TOC 占位列 --- */}
             <div class="hidden xl:block col-span-2"></div>
-
         </div>
 
-        {/* --- FloatingTOC Component (Desktop & Mobile) --- */}
+        {/* --- FloatingTOC Component --- */}
         <FloatingTOC headings={headings} client:load />
 
         {/* --- Up Next Queue --- */}
@@ -177,85 +218,261 @@ const safePubDate = pubDate ? new Date(pubDate) : new Date();
                                 <p class="text-xs text-zinc-500 line-clamp-1">{post.data.description}</p>
                             </div>
                             <div class="shrink-0 text-zinc-300 group-hover:text-purple-600 transition-colors transform group-hover:translate-x-1">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
                             </div>
                         </a>
                     ))}
                 </div>
             </div>
         )}
-
     </article>
 </Layout>
 
-<script define:vars={{ id }}>
+<script define:vars={{ id, supabaseUrl, supabaseAnonKey }}>
     document.addEventListener('DOMContentLoaded', () => {
+        const slug = id || window.location.pathname.split('/blog/')[1]?.replace(/\/$/, '');
+
         // Progress Bar
         const progressBar = document.getElementById('progress-bar');
         const progressPill = document.getElementById('progress-pill');
+
         const updateProgress = () => {
             const scrollTop = window.scrollY;
             const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const scrollPercent = (scrollTop / docHeight) * 100;
-            if(progressBar) progressBar.style.width = scrollPercent + '%';
-            if(progressPill) progressPill.textContent = `${Math.round(scrollPercent)}%`;
+            const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+
+            if (progressBar) progressBar.style.width = scrollPercent + '%';
+            if (progressPill) progressPill.textContent = `${Math.round(scrollPercent)}%`;
         };
+
         window.addEventListener('scroll', updateProgress, { passive: true });
         updateProgress();
 
-        // Engagement Logic (Like/Share)
-        const storageKey = `liked_${id}`;
-        let isLiked = localStorage.getItem(storageKey) === 'true';
-        let likeCount = 124;
+        // Engagement Logic: Like / Share
+        const likeButtons = [
+            document.getElementById('like-btn-hero'),
+            document.getElementById('like-btn-bottom'),
+        ];
+
+        const likeIcons = [
+            document.getElementById('like-icon-hero'),
+            document.getElementById('like-icon-bottom'),
+        ];
+
+        const likeCounts = [
+            document.getElementById('like-count-hero'),
+            document.getElementById('like-count-bottom'),
+        ];
+
+        const shareButtons = [
+            document.getElementById('share-btn-hero'),
+            document.getElementById('share-btn-bottom'),
+        ];
+
+        const shareToasts = [
+            document.getElementById('share-toast-hero'),
+            document.getElementById('share-toast-bottom'),
+        ];
+
+        const likedKey = `liked_${slug}`;
+        let isLiked = localStorage.getItem(likedKey) === '1';
+        let likeCount = 0;
+        let isLikePending = false;
+
+        const likedClasses = [
+            'bg-rose-50',
+            'dark:bg-rose-900/30',
+            'shadow-lg',
+            'shadow-rose-500/15',
+            'border-rose-300/80',
+            'dark:border-rose-600/70',
+            'scale-[1.01]',
+        ];
 
         function updateLikeUI() {
-            const heroBtn = document.getElementById('like-btn-hero');
-            const bottomBtn = document.getElementById('like-btn-bottom');
-            const heroCount = document.getElementById('like-count-hero');
-            const bottomCount = document.getElementById('like-count-bottom');
-            const heroIcon = document.getElementById('like-icon-hero');
-            const bottomIcon = document.getElementById('like-icon-bottom');
-
-            if (heroCount) heroCount.textContent = likeCount.toString();
-            if (bottomCount) bottomCount.textContent = likeCount.toString();
-
-            const likedClasses = ['bg-rose-50', 'dark:bg-rose-900/30', 'shadow-lg', 'shadow-rose-500/15', 'border-rose-300/80', 'dark:border-rose-600/70', 'scale-[1.01]'];
-
-            [heroBtn, bottomBtn].forEach(btn => {
-                if(!btn) return;
-                if (isLiked) btn.classList.add(...likedClasses);
-                else btn.classList.remove(...likedClasses);
+            likeCounts.forEach((el) => {
+                if (el) el.textContent = likeCount.toString();
             });
 
-            const setIcon = (el) => {
-                if (!el) return;
-                el.textContent = isLiked ? '♥' : '♡';
-            };
-            setIcon(heroIcon);
-            setIcon(bottomIcon);
+            likeIcons.forEach((el) => {
+                if (el) el.textContent = isLiked ? '♥' : '♡';
+            });
+
+            likeButtons.forEach((btn) => {
+                if (!btn) return;
+
+                if (isLiked) {
+                    btn.classList.add(...likedClasses);
+                    btn.setAttribute('aria-pressed', 'true');
+                } else {
+                    btn.classList.remove(...likedClasses);
+                    btn.setAttribute('aria-pressed', 'false');
+                }
+            });
         }
-        updateLikeUI();
 
-        const handleLike = () => {
-            isLiked = !isLiked;
-            localStorage.setItem(storageKey, isLiked);
-            likeCount = Math.max(0, likeCount + (isLiked ? 1 : -1));
-            updateLikeUI();
-        };
+        async function fetchLikeCount() {
+            if (!slug || !supabaseUrl || !supabaseAnonKey) return 0;
 
-        document.getElementById('like-btn-hero')?.addEventListener('click', handleLike);
-        document.getElementById('like-btn-bottom')?.addEventListener('click', handleLike);
+            try {
+                const res = await fetch(
+                    `${supabaseUrl}/rest/v1/post_stats?slug=eq.${encodeURIComponent(slug)}&select=like_count`,
+                    {
+                        headers: {
+                            apikey: supabaseAnonKey,
+                            Authorization: `Bearer ${supabaseAnonKey}`,
+                        },
+                    }
+                );
 
-        const handleShare = async () => {
-            if (navigator.share) {
-                try { await navigator.share({ title: document.title, url: window.location.href }); } catch (err) {}
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert('Copied to clipboard!');
+                if (!res.ok) {
+                    const err = await res.text();
+                    console.error('fetchLikeCount failed:', res.status, err);
+                    return 0;
+                }
+
+                const data = await res.json();
+                return data?.[0]?.like_count ?? 0;
+            } catch (err) {
+                console.error('fetchLikeCount error:', err);
+                return 0;
             }
-        };
+        }
 
-        document.getElementById('share-btn-hero')?.addEventListener('click', handleShare);
-        document.getElementById('share-btn-bottom')?.addEventListener('click', handleShare);
+        async function initLike() {
+            likeCount = await fetchLikeCount();
+            updateLikeUI();
+        }
+
+        async function handleLike() {
+            if (!slug || isLikePending) return;
+
+            isLikePending = true;
+
+            const previousLiked = isLiked;
+            const previousCount = likeCount;
+            const delta = previousLiked ? -1 : 1;
+
+            isLiked = !previousLiked;
+            likeCount = Math.max(0, likeCount + delta);
+
+            if (isLiked) {
+                localStorage.setItem(likedKey, '1');
+            } else {
+                localStorage.removeItem(likedKey);
+            }
+
+            updateLikeUI();
+
+            try {
+                const res = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        apikey: supabaseAnonKey,
+                        Authorization: `Bearer ${supabaseAnonKey}`,
+                    },
+                    body: JSON.stringify({
+                        p_slug: slug,
+                        p_delta: delta,
+                    }),
+                });
+
+                if (!res.ok) {
+                    const err = await res.text();
+                    console.error('increment_like failed:', res.status, err);
+
+                    isLiked = previousLiked;
+                    likeCount = previousCount;
+
+                    if (isLiked) {
+                        localStorage.setItem(likedKey, '1');
+                    } else {
+                        localStorage.removeItem(likedKey);
+                    }
+
+                    updateLikeUI();
+                }
+            } catch (err) {
+                console.error('increment_like error:', err);
+
+                isLiked = previousLiked;
+                likeCount = previousCount;
+
+                if (isLiked) {
+                    localStorage.setItem(likedKey, '1');
+                } else {
+                    localStorage.removeItem(likedKey);
+                }
+
+                updateLikeUI();
+            } finally {
+                isLikePending = false;
+            }
+        }
+
+        function showShareToast() {
+            shareToasts.forEach((toast) => {
+                if (!toast) return;
+
+                toast.style.opacity = '1';
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                }, 2000);
+            });
+        }
+
+        async function handleShare() {
+            const url = window.location.href;
+            const shareTitle = document.title;
+
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: shareTitle,
+                        url,
+                    });
+                } else {
+                    await navigator.clipboard.writeText(url);
+                    showShareToast();
+                }
+            } catch (_) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_share`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        apikey: supabaseAnonKey,
+                        Authorization: `Bearer ${supabaseAnonKey}`,
+                    },
+                    body: JSON.stringify({
+                        p_slug: slug,
+                    }),
+                });
+
+                if (!res.ok) {
+                    const err = await res.text();
+                    console.error('increment_share failed:', res.status, err);
+                }
+            } catch (err) {
+                console.error('increment_share error:', err);
+            }
+        }
+
+        likeButtons.forEach((btn) => {
+            btn?.addEventListener('click', handleLike);
+        });
+
+        shareButtons.forEach((btn) => {
+            btn?.addEventListener('click', handleShare);
+        });
+
+        initLike();
     });
 </script>
