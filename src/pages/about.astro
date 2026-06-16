@@ -1,45 +1,145 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { Image } from 'astro:assets';
-
-const pageTitle = "About Me";
-const pageDescription = "关于我和这个博客项目";
+import Layout from '../layouts/Layout.astro';
+import { people } from '../data/people';
 ---
 
-<html lang="en">
-	<head>
-		<BaseHead title={pageTitle} description={pageDescription} />
-	</head>
-	<body class="bg-background text-on-background min-h-screen flex flex-col">
-		<Header />
-		<main class="w-full max-w-4xl mx-auto px-4 py-8 flex-grow">
-            <article class="card p-8 md:p-12">
-                <h1 class="text-4xl font-bold text-on-surface mb-8">{pageTitle}</h1>
-                <div class="prose prose-lg prose-slate max-w-none dark:prose-invert">
-                    <p>
-                        欢迎来到 MathVerse！这是一个致力于探索数学之美、分享技术见解的全栈博客项目。
-                    </p>
-                    <p>
-                        我们的目标是建立一个高性能、互动性强且具备 AI 个性化推荐能力的现代知识分享平台。
-                    </p>
-                    
-                    <h3>核心特性</h3>
-                    <ul>
-                        <li><strong>Astro 驱动</strong>：利用静态站点生成 (SSG) 技术，确保极致的加载速度和 SEO 表现。</li>
-                        <li><strong>React 生态</strong>：使用 React 组件构建丰富的交互式 UI，如知识图谱和动态图表。</li>
-                        <li><strong>Supabase 后端</strong>：利用 PostgreSQL 和 pgvector 处理数据存储和向量搜索。</li>
-                        <li><strong>AI 赋能</strong>：集成 OpenAI Embeddings，通过加权移动平均算法实现实时内容推荐。</li>
-                    </ul>
+<Layout title="About" description="关于我们的团队">
+  <div class="about-page">
 
-                    <h3>关于作者</h3>
-                    <p>
-                        我是一名热爱数学和编程的全栈开发者。在这个博客中，我将记录学习笔记、分享开发经验，并探讨 AI 与数学的交叉领域。
-                    </p>
-                </div>
-            </article>
-		</main>
-		<Footer />
-	</body>
-</html>
+    <!-- 标题区 -->
+    <div style="text-align:center; padding: 60px 20px 32px;">
+      <h1 style="font-size: 2.2rem; font-weight: 800; color: #1a1a2e; margin: 0 0 10px;">About Us</h1>
+      <p style="color: #999; font-size: 15px; margin: 0;">点击头像查看详细介绍</p>
+    </div>
+
+    <!-- 分类 Tab -->
+    <div id="tab-bar" style="display:flex; justify-content:center; gap:10px; margin-bottom: 36px;">
+      {(['all', 'math', 'physics'] as const).map(tab => (
+        <button
+          class="tab-btn"
+          data-tab={tab}
+          style={`
+            padding: 7px 22px;
+            border-radius: 999px;
+            border: 1.5px solid ${tab === 'all' ? '#6c63ff' : '#e0e0e0'};
+            background: ${tab === 'all' ? '#6c63ff' : 'white'};
+            color: ${tab === 'all' ? 'white' : '#555'};
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+          `}
+        >
+          {tab === 'all' ? '全部' : tab === 'math' ? '数学' : '物理'}
+        </button>
+      ))}
+    </div>
+
+    <!-- 人员卡片区 -->
+    <div id="people-grid" style="
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      padding: 0 20px 80px;
+      max-width: 800px;
+      margin: 0 auto;
+    ">
+      {people.map(person => (
+        <a
+          href={`/about/people/${person.slug}`}
+          class="person-card"
+          data-category={JSON.stringify(person.category)}
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 24px 28px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 16px rgba(108,99,255,0.07);
+            text-decoration: none;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+            width: 150px;
+          "
+          onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 30px rgba(108,99,255,0.15)'"
+          onmouseout="this.style.transform='';this.style.boxShadow='0 2px 16px rgba(108,99,255,0.07)'"
+        >
+          <!-- 头像 -->
+          <div style="
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2.5px solid #6c63ff;
+            box-shadow: 0 0 0 4px rgba(108,99,255,0.12);
+          ">
+            <img
+              src={typeof person.avatar === 'object' ? person.avatar.src : person.avatar}
+              alt={person.name}
+              style="width:100%;height:100%;object-fit:cover;"
+            />
+          </div>
+
+          <!-- 名字 -->
+          <div style="font-weight: 700; font-size: 14px; color: #1a1a2e; text-align:center;">
+            {person.name}
+          </div>
+
+          <!-- Role 标签 -->
+          <span style="
+            font-size: 11px; color: #6c63ff;
+            background: rgba(108,99,255,0.1);
+            padding: 3px 10px; border-radius: 999px;
+            text-align: center; line-height: 1.4;
+          ">
+            {person.role}
+          </span>
+
+          <!-- 分类小标签 -->
+          <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:center;">
+            {person.category.map(cat => (
+              <span style={`
+                font-size: 10px;
+                padding: 2px 8px;
+                border-radius: 999px;
+                background: ${cat === 'math' ? '#eff6ff' : '#fdf4ff'};
+                color: ${cat === 'math' ? '#2563eb' : '#7e22ce'};
+              `}>
+                {cat === 'math' ? '数学' : '物理'}
+              </span>
+            ))}
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const tabBtns = document.querySelectorAll<HTMLButtonElement>('.tab-btn');
+  const cards = document.querySelectorAll<HTMLElement>('.person-card');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab!;
+
+      // 更新 Tab 样式
+      tabBtns.forEach(b => {
+        b.style.background = 'white';
+        b.style.color = '#555';
+        b.style.borderColor = '#e0e0e0';
+      });
+      btn.style.background = '#6c63ff';
+      btn.style.color = 'white';
+      btn.style.borderColor = '#6c63ff';
+
+      // 过滤卡片
+      cards.forEach(card => {
+        const cats: string[] = JSON.parse(card.dataset.category || '[]');
+        const show = tab === 'all' || cats.includes(tab);
+        card.style.display = show ? 'flex' : 'none';
+      });
+    });
+  });
+</script>

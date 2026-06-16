@@ -38,7 +38,10 @@ const categories = [
 const authors = [...new Set(
     sortedPosts.map(post => post.data.author || 'Alex')
 )];
-const tags = ["React", "Manim", "Python", "DataViz", "MachineLearning", "Stochastic"];
+// const tags = ["React", "Manim", "Python", "DataViz", "MachineLearning", "Stochastic"];
+const tags = [...new Set(
+  sortedPosts.flatMap(post => post.data.tags || [])
+)].sort();
 
 function getReadingTime(body: string) {
     const wordsPerMinute = 200;
@@ -203,7 +206,7 @@ const categoryColors = {
                 </div>
             </div>
 
-            <div>
+            <!-- <div>
                 <h3 class="font-serif font-bold text-sm uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
                     <span class="text-purple-500">#</span> Tags
                 </h3>
@@ -213,6 +216,37 @@ const categoryColors = {
                             #{tag}
                         </button>
                     ))}
+                </div>
+            </div> -->
+            <div>
+                <h3 class="font-serif font-bold text-sm uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
+                    <span class="text-purple-500">#</span> Tags
+                </h3>
+                <div class="flex flex-wrap gap-2" id="tags-container">
+                    {tags.slice(0, 7).map(tag => (
+                        <button data-type="tag" data-filter={tag} class="sidebar-btn px-3 py-1.5 text-xs rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-colors border border-zinc-200/50 dark:border-zinc-700/50">
+                            #{tag}
+                        </button>
+                    ))}
+
+                    {/* 隐藏的多余 tags */}
+                    <div id="extra-tags" class="hidden flex-wrap gap-2 w-full">
+                        {tags.slice(7).map(tag => (
+                            <button data-type="tag" data-filter={tag} class="sidebar-btn px-3 py-1.5 text-xs rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-colors border border-zinc-200/50 dark:border-zinc-700/50">
+                                #{tag}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* View all / 收起 按钮（只在 tags > 7 时显示） */}
+                    {tags.length > 7 && (
+                        <button
+                            id="toggle-tags-btn"
+                            class="px-3 py-1.5 text-xs rounded-full border border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                        >
+                            View all tags ({tags.length - 7} more)
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -620,6 +654,26 @@ const categoryColors = {
                 updateActiveUI();
                 filterArticles();
             });
+        });
+        // Tags 展开/收起
+        const toggleTagsBtn = document.getElementById('toggle-tags-btn');
+        const extraTags = document.getElementById('extra-tags');
+        let tagsExpanded = false;
+
+        toggleTagsBtn?.addEventListener('click', () => {
+            tagsExpanded = !tagsExpanded;
+            if (tagsExpanded) {
+                extraTags?.classList.remove('hidden');
+                extraTags?.classList.add('flex');
+                if (toggleTagsBtn) toggleTagsBtn.textContent = 'Hide tags ↑';
+            } else {
+                extraTags?.classList.add('hidden');
+                extraTags?.classList.remove('flex');
+                const remaining = (window as any).blogData
+                    ? [...new Set((window as any).blogData.flatMap((p: any) => p.tags || []))].length - 7
+                    : 0;
+                if (toggleTagsBtn) toggleTagsBtn.textContent = `View all tags (${remaining} more)`;
+            }
         });
     </script>
 </body>
