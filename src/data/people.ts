@@ -1,34 +1,89 @@
-import profileImg from '../assets/port_img.jpg';
+// import profileImg from '../assets/port_img.jpg';
 
 export const people = [
   {
     slug: 'Andre',
-    name: 'Andre YI',
-    role: 'Founder / Researcher',
-    category: ['math', 'physics'] as const,
-    avatar: profileImg,
-    email: 'andre@example.com',
-    shortBio: '专注于数学、金融工程、人工智能与知识系统设计。',
-    bio: `Andre YI 是 Andre's Blog 的创建者，主要关注数学、金融工程、随机过程、人工智能以及个人知识系统的构建。\n\n他的研究兴趣包括随机微积分、Black-Scholes 模型、AI Agent、知识图谱与交互式教育系统。`,
-  },
-  {
-    slug: 'Alice',
-    name: 'Alice Chen',
-    role: 'Mathematics Contributor',
+    name: '伊冉',
+    nameEn: 'YI Ran / Andre YI',
+    role: 'Founder / 数値解析',
     category: ['math'] as const,
-    avatar: profileImg,
-    email: 'alice@example.com',
-    shortBio: '关注分析学、概率论与数学教育。',
-    bio: `Alice Chen 主要负责数学内容的整理与审校，尤其关注微积分、实分析、概率论与随机过程。\n\n她希望通过更直观的方式解释抽象数学概念。`,
+    avatar: '/authors/andre-yi.jpg',
+    email: 'andreyi@outlook.jp',
+    shortBio: '数理ファイナンス、機械学習および数値解析の研究に取り組んでいます。',
+    github: 'https://github.com/Andriyichenko',
+    website: 'https://contact.andreyis.com',
+    bio: `はじめまして、伊冉（イ ゼン）と申します。
+    2019年に来日し、今年で日本での生活は8年目を迎えました。立命館大学理工学部数理科学科を卒業後、2026年に同大学院の理工学研究科へ進学しました。専門は数理ファイナンスおよび機械学習で、特にモンテカルロ・シミュレーションを活用した数値解析に取り組んでいます。私の趣味は囲碁ですが、碁盤上における「神の一手」への探求心は、形を変えて現在の数理科学研究にも息づいています。不確実な確率の世界から最適解を導き出すプロセスは、まさに自分にとっての「神の一手」を追う旅路そのものです。`,
   },
   {
-    slug: 'Bob',
-    name: 'Bob Wang',
-    role: 'Physics Contributor',
-    category: ['physics'] as const,
-    avatar: profileImg,
-    email: 'bob@example.com',
-    shortBio: '专注于理论物理与计算物理研究。',
-    bio: `Bob Wang 负责物理相关内容的撰写，研究方向包括量子力学、统计力学与计算模拟。\n\n他希望通过可视化手段让物理更易理解。`,
+    slug: 'Kevin',
+    name: '刘水鉴',
+    nameEn: 'Kevin LIU',
+    role: '未定',
+    category: ['math'] as const,
+    avatar: '/authors/liu-shui-jian.jpg',
+    email: '13002490290@163.com',
+    github: 'https://www.github.com/libertas1107',
+    shortBio: '立命館大学理工学部数理科学科データサイエンスコースに所属。数学やデータサイエンス、プログラミングについて学んでいます。',
+    bio: `はじめまして、劉水鑑（リュウ スイカン）と申します。
+    中国出身で、2025年に来日しました。現在は立命館大学理工学部数理科学科データサイエンスコースに所属し、数学やデータサイエンス、プログラミングについて学んでいます。
+    大学では統計学や機械学習、プログラミングを中心に学習しており、将来的にはデータサイエンスやAIの分野で活躍できる人材になることを目標としています。
+    趣味はバスケットボール、旅行、そして音楽鑑賞です。特にNBAが好きで、試合を観ながら選手のプレーやチーム戦術を分析することを楽しんでいます。また、旅行では新しい景色や文化に出会うことが好きで、休日には各地を訪れてリフレッシュしています。`,
+  },
+  {
+    slug: 'チェシャねこ',
+    name: '柴郡猫',
+    nameEn: 'cheshireneco',
+    role: '機械学習',
+    category: ['physics','math'] as const,
+    avatar: '/authors/liu.jpg',
+    email: 'cheshireneco1225@gmail.com',
+    shortBio: '立命館大学情報理工学部2回生。機械学習に関する紹介を担当。',
+    bio: `はじめまして。チェシャ猫と申します、立命館大学情報理工学部2回生です。
+    andreyisプロジェクトは、私にとって初めて参加したプロジェクトであり、未熟な点も多くありますが、どうぞよろしくお願いいたします。
+    このサイトでは、私は主に機械学習に関する紹介を担当しています。しかし、学部生である以上、知識の深さや広さにはまだまだ不足があり、ここで述べる内容もあくまで一個人の見解にすぎません。それでも、自分なりの考えを皆さんと共有し、共に成長していければと思っています。
+    個人的な趣味について言えば、私は筋金入りのオタクで、アニメ・ゲーム・ボードゲームなどが大好きです。これまでの人生は、ほとんどすべてコンピュータの前で過ごしてきた。特にゲームに関しては、ゲームシステムの構築、レベルデザイン、美術や音楽、バックエンドでの動作の仕組み、数値データの保存方法など、そのすべてに強く惹かれています。
+    現在では機械学習やAIはより幅広い分野で応用されていますが、実は少し前までは、これらの技術が最も多く使われていたのはゲーム業界だったのですよ。`,
+  },
+
+  {
+    slug: 'Esther',
+    name: '劉越齢',
+    nameEn: 'Esther LIU',
+    role: '数理統計/パワエレ',
+    category: ['physics','math'] as const,
+    avatar: '/authors/liu-yue-ling.jpg',
+    email: 'luoshilin610@gmail.com',
+    shortBio: '数理統計/パワエレ',
+    bio: `はじめまして。劉越齢（リュウ エツレイ）と申します。
+    2017年に来日し、今年で日本での生活は9年目になります。現在は、立命館大学理工学部電気電子工学科の4回生として学んでいます。
+    以前は情報科学と数学を専攻しており、C言語やPythonを使ったプログラミングの経験があります。また、数学も得意分野の一つです。その後、電磁気学に強い興味を持つようになり、現在の電気電子工学分野に進みました。
+    将来は、幅広い分野に関心を持ちながらさまざまなことに挑戦し、その中で自分が最も深く追究したい分野を見つけ、専門性を高めていきたいと考えています。`,
+  },
+  {
+    slug: 'Evan',
+    name: '侯云萌',
+    nameEn: 'Evan HOU',
+    role: '数理最適化',
+    category: ['math'] as const,
+    avatar: '/authors/hou-yu-meng.jpg',
+    email: 'hym030509@gmail.com',
+    github: 'https://github.com/hym030509-hash',
+    shortBio: '数理最適化/凸最適化',
+    bio: `初めまして、侯云萌(コウウンホウ)です。
+    中国の江蘇省出身で、2022年に留学のため日本に来ました。現在は立命館大学大学院で最適化アルゴリズムについて研究しています。簡単に言うと、「たくさんの選択肢の中から、最も良い答えを見つける方法」を数学的に考える分野です。研究以外では株式投資が趣味で、小学生の頃から中国株式市場を見ています。企業の決算や業界動向を調べながら、「どの企業が将来成長するのか」を考える時間が好きです。最近は特にAI関連産業に関心があり、半導体やデータセンターからAIサービスまで幅広く調べています。振り返ってみると、研究も投資も本質的には似ていて、不確実な情報の中から仮説を立て、より良い判断を探し続けることだと思っています。私にとって数学の研究とは、数式の世界で未来を予測する挑戦であり、投資とは現実の社会でその挑戦を続けることなのかもしれません。`,
+  },
+  {
+    slug: 'Yuki',
+    name: '小川 渓',
+    nameEn: 'Yuki Ogawa',
+    role: '数理ファイナンス',
+    category: ['math'] as const,
+    avatar: '/authors/ogawa.jpg',
+    email: 'yuxi20021118@icloud.com',
+    shortBio: '数理ファイナンス',
+    bio: `はじめまして、小川 渓(Kei)です。
+    2023年に立命館の理工学部数学科に入って、来年から同じ大学の院で数理ファイナンスを勉強する予定です。専門は統計学で、特に確率論を使った統計的な推論に興味を持っています。
+    趣味はキックボクシングとかテコンドーみたいな格闘技と、家でのんびり過ごすことです。なんでもありえると思っています。どうぞよろしくお願いいたします。  `,
   },
 ];

@@ -6,11 +6,248 @@ import { people } from '../data/people';
 <Layout title="About" description="关于我们的团队">
   <div class="about-page">
 
-    <!-- 标题区 -->
-    <div style="text-align:center; padding: 60px 20px 32px;">
-      <h1 style="font-size: 2.2rem; font-weight: 800; color: #1a1a2e; margin: 0 0 10px;">About Us</h1>
-      <p style="color: #999; font-size: 15px; margin: 0;">点击头像查看详细介绍</p>
+<div id="anim-outer" style="text-align:center; padding: 56px 20px 40px; position: relative; transition: padding 0.7s ease;">
+
+  <!-- 动画容器：固定高度防抖动 -->
+  <div id="math-anim-wrap" style="
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:5px;
+    overflow:visible;
+    transition: height 0.7s ease, opacity 0.5s ease;
+  ">
+    <!-- 公式区：绝对居中，防止不同公式高度引起抖动 -->
+    <div id="math-expr-wrap" style="position:relative; width:100%; height:100%;">
+      <div id="math-expr" style="
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        width:100%; text-align:center;
+        opacity:1; transition: opacity 0.4s ease;
+      "></div>
+      <!-- SVG 也绝对居中，与公式重叠占同一空间 -->
+      <div id="math-svg" style="
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        opacity:0; transition: opacity 0.8s ease;
+      "></div>
     </div>
+  </div>
+
+  <!-- 最终 About Us 标题（初始隐藏，0高度，不占位） -->
+  <h1 id="final-title" style="
+    font-size:2.2rem; font-weight:800; color:#1a1a2e;
+    margin:0; opacity:0; height:0; overflow:hidden;
+    transition: opacity 0.7s ease;
+    text-align:center;
+  ">About Us</h1>
+
+  <!-- 副标题 -->
+  <p id="about-sub" style="color:#999; font-size:15px; margin:12px 0 0; opacity:0; transition: opacity 0.8s ease;">アイコンをタップして詳細を見る</p>
+
+</div>
+
+<script>
+(function () {
+  function waitKatex(cb) {
+    if (window.katex) { cb(); return; }
+    const t = setInterval(() => { if (window.katex) { clearInterval(t); cb(); } }, 80);
+  }
+
+  function renderKatex(latex) {
+    const el = document.getElementById('math-expr');
+    el.innerHTML = '';
+    try {
+      window.katex.render('\\displaystyle ' + latex, el, { throwOnError: false, displayMode: true });
+    } catch (e) {
+      el.textContent = latex;
+    }
+  }
+
+  function drawNormal(showRay) {
+    const w = 300, h = 90;
+    const sigma = 4, mu = 0;
+    const xMin = -14, xMax = 14;
+    const teamSize = document.querySelectorAll('.person-card').length || 6;
+
+    const norm = x => Math.exp(-0.5 * ((x - mu) / sigma) ** 2) / (sigma * Math.sqrt(2 * Math.PI));
+
+    const pts = [];
+    for (let px = 0; px <= w; px++) {
+      const x = xMin + (xMax - xMin) * px / w;
+      pts.push([px, norm(x)]);
+    }
+    const yMax = norm(mu);
+    const toY = y => h - 8 - (y / yMax) * (h - 18);
+    const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${toY(p[1]).toFixed(1)}`).join(' ');
+
+    const cx = w / 2;
+    const se = sigma / Math.sqrt(teamSize);
+    const sex = (se / (xMax - xMin)) * w;
+    const peakY = toY(yMax);
+    const baseY = h - 8;
+
+    // 用 KaTeX 把 LaTeX 渲染成 HTML 字符串
+    function kt(latex) {
+      try {
+        return window.katex.renderToString(latex, { throwOnError: false });
+      } catch(e) { return latex; }
+    }
+
+    // foreignObject 标签辅助函数（居中锚点）
+    function fo(x, y, latex, color) {
+      return `<foreignObject x="${x - 40}" y="${y}" width="80" height="22" style="overflow:visible;">
+        <div xmlns="http://www.w3.org/1999/xhtml"
+          style="text-align:center; color:${color}; font-size:11px; line-height:1;">
+          ${kt(latex)}
+        </div>
+      </foreignObject>`;
+    }
+
+    const rayLine = showRay
+      ? `<line x1="${cx}" y1="${peakY}" x2="${cx}" y2="${peakY - 28}"
+           stroke="#6c63ff" stroke-width="1.5" opacity="0.85"/>
+         <circle cx="${cx}" cy="${peakY}" r="3" fill="#6c63ff" opacity="0.9"/>`
+      : '';
+
+    return `<svg width="${w}" height="${h + 44}" viewBox="0 0 ${w} ${h + 44}" style="overflow:visible;">
+      <path d="${path}" fill="none" stroke="#6c63ff" stroke-width="2"/>
+      <line x1="0" y1="${baseY}" x2="${w}" y2="${baseY}" stroke="#ccc" stroke-width="1"/>
+      <line x1="${cx}" y1="${peakY}" x2="${cx}" y2="${baseY}"
+        stroke="#6c63ff" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+      <line x1="${cx+sex}" y1="${toY(norm(se))}" x2="${cx+sex}" y2="${baseY}"
+        stroke="#a78bfa" stroke-width="1" stroke-dasharray="2,3" opacity="0.5"/>
+      <line x1="${cx-sex}" y1="${toY(norm(-se))}" x2="${cx-sex}" y2="${baseY}"
+        stroke="#a78bfa" stroke-width="1" stroke-dasharray="2,3" opacity="0.5"/>
+
+      ${fo(cx,    h + 4,  '\\texttt{E[blog]}',            '#6c63ff')}
+      ${fo(cx + 80, h + 22, '+\\sigma/\\!\\sqrt{n}',      '#a78bfa')}
+      ${fo(cx - 80, h + 22, '-\\sigma/\\!\\sqrt{n}',      '#a78bfa')}
+
+      <foreignObject x="${w - 110}" y="2" width="112" height="18" style="overflow:visible;">
+        <div xmlns="http://www.w3.org/1999/xhtml"
+          style="text-align:right; color:#bbb; font-size:10px; line-height:1;">
+          ${kt('n = \\mathtt{' + teamSize + '} = |\\mathbb{U}|')}
+        </div>
+      </foreignObject>
+
+      ${rayLine}
+    </svg>`;
+  }
+
+  const teamSize = document.querySelectorAll('.person-card').length || 6;
+  waitKatex(function () {
+    const steps = [
+      { latex: '\\textbf{Goal:\\quad }\\textrm{find\\ } \\texttt{"About Us"}',                                                          duration: 700 },
+      { latex: '\\mathbb{E}[X] = \\sum_{\\kappa} x_{\\kappa} \\cdot p_{\\kappa}',                                                      duration: 700 },
+      { latex: '\\mathbb{V}[X] = \\mathbb{E}\\!\\left[(X - \\mathbb{E}[X])^2\\right]',                                                duration: 700 },
+      { latex: '\\mathbb{U} = \\{\\texttt{Person}_1, \\ldots, \\texttt{Person}_n\\}, \\quad n = |\\mathbb{U}| = \\mathtt{' + teamSize + '}', duration: 900 },
+      { latex: '\\bar{X}_n = \\frac{1}{n}\\sum_{i=1}^{n} \\texttt{Person}_i, \\quad \\mathbb{V}[\\bar{X}_n] = \\frac{\\sigma^2}{n}',  duration: 900 },
+      { latex: '\\texttt{About} := \\ \\mathbb{E}[\\texttt{blog}] = \\bar{X}_n',                                                       duration: 800 },
+      { latex: '\\therefore\\; \\texttt{About Us} \\sim \\mathcal{N}\\!\\left(\\mathbb{E}[\\texttt{blog}],\\, \\dfrac{\\sigma^2}{n}\\right)', duration: 900 },
+    ];
+
+    const exprEl     = document.getElementById('math-expr');
+    const svgEl      = document.getElementById('math-svg');
+    const subEl      = document.getElementById('about-sub');
+    const wrap       = document.getElementById('math-anim-wrap');
+    const finalTitle = document.getElementById('final-title');
+    const animOuter  = document.getElementById('anim-outer');
+
+    let i = 0;
+
+    function fadeExpr(latex, cb) {
+      exprEl.style.opacity = '0';
+      setTimeout(() => {
+        renderKatex(latex);
+        exprEl.style.opacity = '1';
+        setTimeout(cb, 120);
+      }, 350);
+    }
+
+    function showStep() {
+      if (i < steps.length) {
+        const step = steps[i++];
+        fadeExpr(step.latex, () => setTimeout(showStep, step.duration));
+        return;
+      }
+
+      // ── A: 公式淡出 (500ms) ──────────────────────────────
+      exprEl.style.transition = 'opacity 0.5s ease';
+      exprEl.style.opacity = '0';
+
+      setTimeout(() => {
+        exprEl.style.display = 'none';
+
+        // ── B: 画曲线（无射线），淡入 (800ms) ────────────────
+        svgEl.innerHTML = drawNormal(false);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          svgEl.style.opacity = '1';
+        }));
+
+        // ── C: 800ms后加射线 ──────────────────────────────
+        setTimeout(() => {
+          svgEl.innerHTML = drawNormal(true);
+
+          // ── D: 500ms后 About Us 从峰顶浮现 ───────────────
+          setTimeout(() => {
+            const pt = document.createElement('div');
+            pt.style.cssText = `
+              position:absolute; left:50%; top:8px; transform:translateX(-50%);
+              font-size:2rem; font-weight:800; color:#1a1a2e;
+              opacity:0; transition: opacity 0.9s ease, top 0.9s ease;
+              white-space:nowrap; pointer-events:none;
+            `;
+            pt.textContent = 'About Us';
+            svgEl.appendChild(pt);
+
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              pt.style.opacity = '1';
+              pt.style.top = '-44px';
+            }));
+
+            // ── E: 1100ms后曲线淡出（标题留着） ────────────
+            setTimeout(() => {
+              const svgTag = svgEl.querySelector('svg');
+              if (svgTag) {
+                svgTag.style.transition = 'opacity 0.9s ease';
+                svgTag.style.opacity = '0';
+              }
+
+              // ── F: 700ms后整体切换 ──────────────────────
+              setTimeout(() => {
+                // 1. 临时浮现的 pt 淡出
+                pt.style.opacity = '0';
+
+                // 2. 动画容器收缩到 0、淡出
+                wrap.style.height = '0';
+                wrap.style.opacity = '0';
+
+                // 3. 外层 padding 收紧
+                animOuter.style.paddingTop = '35px';
+                animOuter.style.paddingBottom = '24px';
+
+                // 4. 最终标题展开并淡入
+                finalTitle.style.height = 'auto';
+                finalTitle.style.marginBottom = '16px';
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                  finalTitle.style.opacity = '1';
+                }));
+
+                // 5. 副标题随后淡入
+                setTimeout(() => { subEl.style.opacity = '1'; }, 400);
+
+              }, 700); // E→F
+
+            }, 1100); // D→E
+
+          }, 500); // C→D
+
+        }, 800); // B→C
+
+      }, 500); // A→B
+    }
+
+    setTimeout(showStep, 400);
+  });
+})();
+</script>
 
     <!-- 分类 Tab -->
     <div id="tab-bar" style="display:flex; justify-content:center; gap:10px; margin-bottom: 36px;">
@@ -66,7 +303,6 @@ import { people } from '../data/people';
           onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 30px rgba(108,99,255,0.15)'"
           onmouseout="this.style.transform='';this.style.boxShadow='0 2px 16px rgba(108,99,255,0.07)'"
         >
-          <!-- 头像 -->
           <div style="
             width: 72px; height: 72px;
             border-radius: 50%;
@@ -80,23 +316,27 @@ import { people } from '../data/people';
               style="width:100%;height:100%;object-fit:cover;"
             />
           </div>
-
-          <!-- 名字 -->
           <div style="font-weight: 700; font-size: 14px; color: #1a1a2e; text-align:center;">
             {person.name}
           </div>
-
-          <!-- Role 标签 -->
+          {person.nameEn && (
+            <div style="font-size: 11px; color: #999; text-align:center; margin-top: -4px;">
+              {person.nameEn}
+            </div>
+          )}
           <span style="
             font-size: 11px; color: #6c63ff;
             background: rgba(108,99,255,0.1);
             padding: 3px 10px; border-radius: 999px;
             text-align: center; line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            display: block;
           ">
             {person.role}
           </span>
-
-          <!-- 分类小标签 -->
           <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:center;">
             {person.category.map(cat => (
               <span style={`
@@ -123,8 +363,6 @@ import { people } from '../data/people';
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const tab = btn.dataset.tab!;
-
-      // 更新 Tab 样式
       tabBtns.forEach(b => {
         b.style.background = 'white';
         b.style.color = '#555';
@@ -133,8 +371,6 @@ import { people } from '../data/people';
       btn.style.background = '#6c63ff';
       btn.style.color = 'white';
       btn.style.borderColor = '#6c63ff';
-
-      // 过滤卡片
       cards.forEach(card => {
         const cats: string[] = JSON.parse(card.dataset.category || '[]');
         const show = tab === 'all' || cats.includes(tab);
