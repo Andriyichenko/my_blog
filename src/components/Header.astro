@@ -35,6 +35,10 @@ import HeaderLink from './HeaderLink.astro';
         height: 1.5px;
         background: linear-gradient(90deg, transparent, currentColor, transparent);
         opacity: 0.4;
+      }
+
+      /* 仅主页触发积分路径动画 */
+      .is-home .site-title-wrapper::before {
         animation: integral-path 3s ease-in-out 0.3s forwards;
       }
 
@@ -47,6 +51,10 @@ import HeaderLink from './HeaderLink.astro';
       .title-kanji {
         display: inline-block;
         font-weight: 700;
+      }
+
+      /* 仅主页触发汉字收敛动画 */
+      .is-home .title-kanji {
         animation: kanji-converge 4s cubic-bezier(0.16, 1, 0.3, 1) 0s both;
       }
 
@@ -65,7 +73,6 @@ import HeaderLink from './HeaderLink.astro';
       .title-blog-char {
         display: inline-block;
         position: relative;
-        opacity: 0;
         will-change: transform, opacity;
       }
     </style>
@@ -79,7 +86,7 @@ import HeaderLink from './HeaderLink.astro';
     <div class="flex items-center space-x-4">
       <a href="https://xhslink.com/m/5flv8e6DPyi" target="_blank" class="text-on-surface-variant hover:text-primary transition-colors">
         <span class="sr-only">Follow on 小红书</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true" class="w-7 h-7 fill-current">
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="w-8 h-8 fill-current">
           <path d="M22.405 9.879c.002.016.01.02.07.019h.725a.797.797 0 0 0 .78-.972a.794.794 0 0 0-.884-.618a.795.795 0 0 0-.692.794c0 .101-.002.666.001.777m-11.509 4.808c-.203.001-1.353.004-1.685.003a2.5 2.5 0 0 1-.766-.126a.025.025 0 0 0-.03.014L7.7 16.127a.025.025 0 0 0 .01.032c.111.06.336.124.495.124c.66.01 1.32.002 1.981 0q.017 0 .023-.015l.712-1.545a.025.025 0 0 0-.024-.036zM.477 9.91c-.071 0-.076.002-.076.01l-.01.08c-.027.397-.038.495-.234 3.06c-.012.24-.034.389-.135.607c-.026.057-.033.042.003.112c.046.092.681 1.523.787 1.74c.008.015.011.02.017.02c.008 0 .033-.026.047-.044q.219-.282.371-.606c.306-.635.44-1.325.486-1.706c.014-.11.021-.22.03-.33l.204-2.616l.022-.293c.003-.029 0-.033-.03-.034zm7.203 3.757a1.4 1.4 0 0 1-.135-.607c-.004-.084-.031-.39-.235-3.06a.4.4 0 0 0-.01-.082c-.004-.011-.052-.008-.076-.008h-1.48c-.03.001-.034.005-.03.034l.021.293q.114 1.473.233 2.946c.05.4.186 1.085.487 1.706c.103.215.223.419.37.606c.015.018.037.051.048.049c.02-.003.742-1.642.804-1.765c.036-.07.03-.055.003-.112m3.861-.913h-.872a.126.126 0 0 1-.116-.178l1.178-2.625a.025.025 0 0 0-.023-.035l-1.318-.003a.148.148 0 0 1-.135-.21l.876-1.954a.025.025 0 0 0-.023-.035h-1.56q-.017 0-.024.015l-.926 2.068c-.085.169-.314.634-.399.938a.5.5 0 0 0-.02.191a.46.46 0 0 0 .23.378a1 1 0 0 0 .46.119h.59c.041 0-.688 1.482-.834 1.972a.5.5 0 0 0-.023.172a.47.47 0 0 0 .23.398c.15.092.342.12.475.12l1.66-.001q.017 0 .023-.015l.575-1.28a.025.025 0 0 0-.024-.035m-6.93-4.937H3.1a.032.032 0 0 0-.034.033c0 1.048-.01 2.795-.01 6.829c0 .288-.269.262-.28.262h-.74c-.04.001-.044.004-.04.047c.001.037.465 1.064.555 1.263c.01.02.03.033.051.033c.157.003.767.009.938-.014c.153-.02.3-.06.438-.132c.3-.156.49-.419.595-.765c.052-.172.075-.353.075-.533q.003-3.495-.007-6.991a.03.03 0 0 0-.032-.032zm11.784 6.896q-.002-.02-.024-.022h-1.465c-.048-.001-.049-.002-.05-.049v-4.66c0-.072-.005-.07.07-.07h.863c.08 0 .075.004.075-.074V8.393c0-.082.006-.076-.08-.076h-3.5c-.064 0-.075-.006-.075.073v1.445c0 .083-.006.077.08.077h.854c.075 0 .07-.004.07.07v4.624c0 .095.008.084-.085.084c-.37 0-1.11-.002-1.304 0c-.048.001-.06.03-.06.03l-.697 1.519s-.014.025-.008.036s.013.008.058.008q2.622.003 5.243.002c.03-.001.034-.006.035-.033zm4.177-3.43q0 .021-.02.024c-.346.006-.692.004-1.037.004q-.021-.003-.022-.024q-.006-.651-.01-1.303c0-.072-.006-.071.07-.07l.733-.003c.041 0 .081.002.12.015c.093.025.16.107.165.204c.006.431.002 1.153.001 1.153m2.67.244a1.95 1.95 0 0 0-.883-.222h-.18c-.04-.001-.04-.003-.042-.04V10.21q.001-.198-.025-.394a1.8 1.8 0 0 0-.153-.53a1.53 1.53 0 0 0-.677-.71a2.2 2.2 0 0 0-1-.258c-.153-.003-.567 0-.72 0c-.07 0-.068.004-.068-.065V7.76c0-.031-.01-.041-.046-.039H17.93s-.016 0-.023.007q-.008.008-.008.023v.546c-.008.036-.057.015-.082.022h-.95c-.022.002-.028.008-.03.032v1.481c0 .09-.004.082.082.082h.913c.082 0 .072.128.072.128v1.148s.003.117-.06.117h-1.482c-.068 0-.06.082-.06.082v1.445s-.01.068.064.068h1.457c.082 0 .076-.006.076.079v3.225c0 .088-.007.081.082.081h1.43c.09 0 .082.007.082-.08v-3.27c0-.029.006-.035.033-.035l2.323-.003a.7.7 0 0 1 .28.061a.46.46 0 0 1 .274.407c.008.395.003.79.003 1.185c0 .259-.107.367-.33.367h-1.218c-.023.002-.029.008-.028.033q.276.655.57 1.303a.05.05 0 0 0 .04.026c.17.005.34.002.51.003c.15-.002.517.004.666-.01a2 2 0 0 0 .408-.075c.59-.18.975-.698.976-1.313v-1.981q.001-.191-.034-.38c0 .078-.029-.641-.724-.998"/>
         </svg>
       </a>
@@ -99,104 +106,119 @@ document.addEventListener('DOMContentLoaded', () => {
   const chars = Array.from(document.querySelectorAll<HTMLElement>('.title-blog-char'));
   if (!chars.length) return;
 
-  // ── 斐波那契螺旋参数 ─────────────────────────────
-  // 每个字母对应螺旋上的一个"臂"，从大到小
-  // 黄金比例 φ ≈ 1.618，螺旋半径按 φ 递减
-  const PHI       = 1.6180339887;
-  const BASE_R    = 52;          // B 的起始半径 px
-  const SPIN_START= 2400;        // ms，汉字收敛后开始
-  const TOTAL_SPIN= 3600;        // ms，螺旋旋转总时长
-  const SETTLE_START = SPIN_START + TOTAL_SPIN + 100; // 归位开始
+  const isHome = window.location.pathname === '/';
 
-  // 4个字母在螺旋上的初始角度（模仿黄金螺旋各象限）
-  // B：右上(315°) r=BASE_R
-  // l：左上(225°) r=BASE_R/φ
-  // o：左下(135°) r=BASE_R/φ²
-  // g：右下(45°)  r=BASE_R/φ³
+  // ── 非主页：直接静止显示，不跑动画 ──────────────
+  if (!isHome) {
+    chars.forEach((el) => {
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+    return;
+  }
+
+  // ── 主页：加 is-home class 触发 CSS 动画 ─────────
+  document.querySelector('header')?.classList.add('is-home');
+
+  // ── 黄金螺旋参数 ─────────────────────────────────
+  const PHI        = 1.6180339887;
+  const BASE_R     = 52;   // B 的起始半径 px
+  const SPIN_START = 2400; // ms，汉字收敛后开始
+  const TOTAL_SPIN = 3600; // ms，螺旋旋转总时长
+
+  // B→右上(315°) l→左上(177.5°) o→左下(40°) g→右下(262.5°)
+  // 每臂起始角度错开黄金角 137.5°
   const spiralConfig = chars.map((_, i) => ({
     r:     BASE_R / Math.pow(PHI, i),
-    // 每臂起始角度错开 ~137.5°（黄金角）
     angle: (315 - i * 137.5) * (Math.PI / 180),
   }));
 
-  // 初始：将字母放到螺旋起点，不可见
+  // 初始：字母放到螺旋起点，透明
   chars.forEach((el, i) => {
     const { r, angle } = spiralConfig[i];
     const x = Math.cos(angle) * r;
     const y = Math.sin(angle) * r;
-    el.style.transform = `translate(${x}px, ${y}px) scale(${0.5 + i * 0.1})`;
     el.style.opacity = '0';
+    el.style.transform = `translate(${x}px, ${y}px) scale(${0.5 + i * 0.1})`;
   });
 
-  // ── 阶段1：螺旋旋转（rAF 驱动） ─────────────────
-  // 每个字母沿自己的半径做圆周运动，同时半径随时间缓缓向0收缩
-  // → 视觉上是螺旋向内卷入感
-  let rafId: number;
-  let spinStart: number | null = null;
-
+  // ── 阶段1：字母淡入到初始螺旋位置 ────────────────
   setTimeout(() => {
-    // 字母淡入到初始螺旋位置
     chars.forEach((el) => {
       el.style.transition = 'opacity 0.5s ease';
       el.style.opacity = '1';
     });
 
-    // 等淡入完成后启动 rAF
+    // 淡入完成后启动 rAF 螺旋
     setTimeout(() => {
+      let spinStart: number | null = null;
+
+      function easeInOut(t: number) {
+        return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      }
+
       function frame(ts: number) {
         if (!spinStart) spinStart = ts;
-        const elapsed = ts - spinStart;
-        // progress: 0→1，使用 easeInOut
-        const raw = Math.min(elapsed / TOTAL_SPIN, 1);
-        const progress = raw < 0.5
-          ? 2 * raw * raw
-          : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+        const raw = Math.min((ts - spinStart) / TOTAL_SPIN, 1);
+        const progress = easeInOut(raw);
 
         chars.forEach((el, i) => {
           const cfg = spiralConfig[i];
-          // 旋转角度：各字母同向旋转，转满 2π（一整圈）
-          const angle = cfg.angle + progress * Math.PI * 2;
-          // 半径：从初始半径螺旋收缩到 0（黄金螺旋收敛感）
-          // 用 easeIn 让收缩在末尾加速
+          // 旋转一整圈，同时半径向内收缩
+          const angle   = cfg.angle + progress * Math.PI * 2;
           const rShrink = cfg.r * (1 - Math.pow(progress, 1.4));
           const x = Math.cos(angle) * rShrink;
           const y = Math.sin(angle) * rShrink;
-          // scale 随半径收缩，体现"远大近小"透视
+          // scale 随收缩渐大（远小近大）
           const sc = 0.7 + 0.3 * (1 - rShrink / cfg.r);
+          el.style.transition = 'none';
           el.style.transform = `translate(${x}px, ${y}px) scale(${sc})`;
         });
 
         if (raw < 1) {
-          rafId = requestAnimationFrame(frame);
+          requestAnimationFrame(frame);
         } else {
-          // 螺旋结束，字母汇聚到原点附近
+          // 螺旋收敛结束，汇聚到原点
           chars.forEach((el) => {
+            el.style.transition = 'transform 0.3s ease-out';
             el.style.transform = 'translate(0px, 0px) scale(1)';
           });
-          settle();
+          // 稍等后进入归位弹性阶段
+          setTimeout(settle, 350);
         }
       }
-      rafId = requestAnimationFrame(frame);
-    }, 500);
 
+      requestAnimationFrame(frame);
+    }, 500);
   }, SPIN_START);
 
-  // ── 阶段2：从原点归位（带线性变换弹性） ──────────
+  // ── 阶段2：弹性归位 ───────────────────────────────
   function settle() {
-    chars.forEach((el, i) => {
+    // l、o、g 先弹正
+    [1, 2, 3].forEach((i, order) => {
       setTimeout(() => {
-        // 先给一点 skew 弹性（线性变换隐喻）
-        el.style.transition = 'transform 0.55s cubic-bezier(0.34, 1.6, 0.64, 1), opacity 0.3s ease';
-        el.style.transform  = `translate(0px, ${-6 + i * 2}px) rotate(${i % 2 === 0 ? 5 : -5}deg) scaleX(0.85)`;
-
-        // 再完全归正
+        const el = chars[i];
+        // 先弹一下
+        el.style.transition = 'transform 0.55s cubic-bezier(0.34, 1.6, 0.64, 1)';
+        el.style.transform = `translate(0px, ${-6 + i * 2}px) rotate(${i % 2 === 0 ? 5 : -5}deg) scaleX(0.85)`;
+        // 再归正
         setTimeout(() => {
           el.style.transition = 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)';
-          el.style.transform  = 'translate(0px, 0px) rotate(0deg) scaleX(1) scale(1)';
+          el.style.transform = 'none';
         }, 320);
-
-      }, i * 110);
+      }, order * 110);
     });
+
+    // B 单独延迟弹正（吸睛效果）
+    setTimeout(() => {
+      const B = chars[0];
+      B.style.transition = 'transform 0.4s cubic-bezier(0.34, 2.0, 0.64, 1)';
+      B.style.transform = 'translate(0px, 0px) rotate(-9deg) scale(1.06)';
+      setTimeout(() => {
+        B.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+        B.style.transform = 'none';
+      }, 400);
+    }, 3 * 110 + 650);
   }
 });
 </script>
