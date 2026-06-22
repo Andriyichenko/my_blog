@@ -1,4 +1,4 @@
----
+<!-- ---
 import Layout from '../../../layouts/Layout.astro';
 import CircularPeopleSelector from '../../../components/CircularPeopleSelector.jsx';
 import { people } from '../../../data/people';
@@ -11,6 +11,33 @@ export function getStaticPaths() {
 }
 
 const { person } = Astro.props;
+---
+
+<Layout title={person.name} description={person.shortBio}>
+  <CircularPeopleSelector
+    people={people}
+    initialSlug={person.slug}
+    client:load
+  />
+</Layout> -->
+---
+import Layout from '../../../layouts/Layout.astro';
+import CircularPeopleSelector from '../../../components/CircularPeopleSelector.jsx';
+import { people } from '../../../data/people';
+
+export function getStaticPaths() {
+  return people.map((person) => ({
+    params: { slug: person.slug },
+    props: { person },
+  }));
+}
+
+const { slug } = Astro.params;
+const person = people.find((p) => p.slug === slug);
+
+if (!person) {
+  return Astro.redirect('/404');
+}
 ---
 
 <Layout title={person.name} description={person.shortBio}>

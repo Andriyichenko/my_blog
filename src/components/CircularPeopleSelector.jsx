@@ -78,11 +78,15 @@ export default function CircularPeopleSelector({ people, initialSlug }) {
         background: 'rgba(255,255,255,0)', backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(108,99,255,0.08)',
       }}>
-        <a href="/about" style={{ color: '#999', textDecoration: 'none', fontSize: 14, display: 'flex', alignItems: 'center', gap: 4 }}>
+        <a href="/about" style={{ color: '#999', textDecoration: 'none', fontSize: 14, display: 'flex', alignItems: 'center', gap: 4, minWidth: 70 }}>
           ← About
         </a>
-        {/* 顶部名字：日文名 + 英文名小字 */}
-        <div style={{ textAlign: 'center' }}>
+
+        {/* 绝对定位到整行正中，不受两侧宽度影响 */}
+        <div style={{
+          position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+          textAlign: 'center', pointerEvents: 'none',
+        }}>
           <div style={{ fontWeight: 600, fontSize: 15, color: '#1a1a2e', lineHeight: 1.3 }}>
             {person.name}
           </div>
@@ -92,6 +96,7 @@ export default function CircularPeopleSelector({ people, initialSlug }) {
             </div>
           )}
         </div>
+
         <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
           {people.map((_, i) => (
             <div key={i} style={{
@@ -257,11 +262,9 @@ export default function CircularPeopleSelector({ people, initialSlug }) {
             <img src={person.avatar} alt={person.name} onError={e=>{e.currentTarget.src='/authors/default.jpg'}} style={{width:'100%',height:'100%',objectFit:'cover'}} />
           </div>
           <div>
-            {/* 日文名 */}
             <div style={{ fontWeight:700, fontSize:20, color:'#1a1a2e', lineHeight:1.3 }}>
               {person.name}
             </div>
-            {/* 英文名（仅当 nameEn 存在时显示） */}
             {person.nameEn && (
               <div style={{ fontSize:13, color:'#999', marginBottom:4, lineHeight:1.3 }}>
                 {person.nameEn}
