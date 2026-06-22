@@ -139,16 +139,41 @@ const csProjects      = allProjects.filter(p => p.category === 'cs');
         </div>
 
         <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center px-4">
-            <a href="/blog" class="group relative inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl font-semibold shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+            <!-- <a href="/blog" class="group relative inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl font-semibold shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
                 <span class="absolute inset-0 bg-gradient-to-r from-purple-700 to-violet-700 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                 <span class="relative flex items-center gap-2">
-                    <span class="text-lg font-serif italic opacity-80">∫</span>
+                    <span id="btn-integral" style="display:inline-flex;align-items:center;line-height:1;"></span>
                     <span>Search Blogs</span>
                     <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                     </svg>
                 </span>
-            </a>
+            </a> -->
+            <a href="/blog" class="group relative inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl font-semibold shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+            <span class="absolute inset-0 bg-gradient-to-r from-purple-700 to-violet-700 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+            <span class="relative flex items-center gap-2">
+                <span id="btn-integral" style="display:inline-flex;align-items:center;line-height:1;"></span>
+                <span>Search Blogs</span>
+                <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+            </span>
+        </a>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const el = document.getElementById('btn-integral');
+                if (el && window.katex) {
+                    katex.render('\\textstyle\\sum', el, {
+                        throwOnError: false,
+                        displayMode: false,
+                    });
+                    // 控制大小和颜色
+                    el.style.fontSize = '1.05rem';
+                    el.style.color = 'white';
+                    el.style.opacity = '0.75';
+                }
+            });
+        </script>
             <a href="/about" class="group inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 rounded-2xl font-semibold border-2 border-zinc-200 dark:border-zinc-700 hover:border-purple-300 dark:hover:border-purple-700 hover:text-purple-600 dark:hover:text-purple-400 shadow-sm hover:shadow-md transition-all duration-300">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -352,6 +377,10 @@ const csProjects      = allProjects.filter(p => p.category === 'cs');
 </style>
 
 <script>
+    const el = document.getElementById('btn-integral');
+    if (el && window.katex) {
+        katex.render('\\displaystyle\\int', el, { throwOnError: false });
+    }
     const swiperScript = document.createElement('script');
     swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
     swiperScript.onload = () => {

@@ -91,15 +91,15 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                         </div>
                     )}
                     
-                    {/* =====【已修饰：去掉了此处的红心和链接统计组件，恢复极简对齐】===== */}
                     <div class="flex items-center gap-2 pl-2 border-l border-outline/10 ml-auto">
                         <div class="w-5 h-5 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
-                            <Image
-                                src={defaultAvatar}
+                            <img
+                                src={`/authors/${authorSlug}.jpg`}
                                 alt={author}
                                 width={20}
                                 height={20}
                                 class="w-full h-full object-cover"
+                                onerror="this.onerror=null;this.src='/authors/default.jpg'"
                             />
                         </div>
                         <span class="text-xs font-medium text-on-surface-variant truncate max-w-[80px]">
@@ -138,15 +138,15 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
                         </div>
                     )}
                     
-                    {/* =====【已修饰：去掉了此处的红心和链接统计组件，恢复极简对齐】===== */}
                     <div class="flex items-center gap-2 pl-3 border-l border-outline/10">
                         <div class="w-6 h-6 rounded-full overflow-hidden ring-1 ring-white dark:ring-zinc-700">
-                            <Image
-                                src={authorImage}
+                            <img
+                                src={`/authors/${authorSlug}.jpg`}
                                 alt={author}
                                 width={24}
                                 height={24}
                                 class="w-full h-full object-cover"
+                                onerror="this.onerror=null;this.src='/authors/default.jpg'"
                             />
                         </div>
                         <span class="text-sm font-medium text-on-surface-variant">{author}</span>
