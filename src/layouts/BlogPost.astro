@@ -1,8 +1,9 @@
 ---
-// src/layouts/blog.astro
+// src/layouts/BlogPost.astro
 import Layout from './Layout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import FloatingTOC from '../components/FloatingTOC.jsx';
+import { people } from '../data/people';
 
 const frontmatter = Astro.props.frontmatter || Astro.props;
 
@@ -22,6 +23,47 @@ const {
     body = ""
 } = frontmatter;
 
+// 查找作者信息
+let authorSlug = 'Andre';
+let authorAvatar = `/authors/default.jpg`;
+
+if (author && people && people.length > 0) {
+    let found = people.find((p: any) => p.nameEn === author);
+    
+    if (!found) {
+        found = people.find((p: any) => p.nameEn.includes(author));
+    }
+    
+    if (!found) {
+        const authorParts = author.split(/\s+/);
+        found = people.find((p: any) => 
+            authorParts.some(part => p.nameEn.includes(part))
+        );
+    }
+    
+    if (!found) {
+        found = people.find((p: any) => p.name === author);
+    }
+    
+    if (!found) {
+        found = people.find((p: any) => p.name.includes(author));
+    }
+    
+    if (!found) {
+        const authorParts = author.split(/\s+/);
+        found = people.find((p: any) => 
+            authorParts.some(part => p.name.includes(part))
+        );
+    }
+    
+    if (found) {
+        authorSlug = found.slug || 'Andre';
+        authorAvatar = found.avatar || `/authors/default.jpg`;
+    } else {
+        console.warn('⚠️ 未找到作者:', author);
+    }
+}
+
 const headings = Astro.props.headings || frontmatter.headings || [];
 
 const wordCount = body ? body.split(/\s+/g).length : 0;
@@ -36,7 +78,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
     <div class="sticky top-0 z-40 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-zinc-200/60 dark:border-zinc-800/60">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-start py-2">
-                <a href="/blog" aria-label="返回" class="flex items-center justify-center w-10 h-10 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all border border-transparent hover:border-purple-200/60 dark:hover:border-purple-700/60 shadow-sm">
+                <a href="javascript:void(0)" id="back-btn" aria-label="返回" class="flex items-center justify-center w-10 h-10 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all border border-transparent hover:border-purple-200/60 dark:hover:border-purple-700/60 shadow-sm">
                     <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
@@ -66,10 +108,10 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             )}
 
             <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-zinc-500 dark:text-zinc-400 text-sm py-2">
-                <div class="flex items-center gap-2">
+                <a href={`/about/people/${authorSlug}`} class="flex items-center gap-2 hover:opacity-80 transition-opacity">
                     <div class="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white dark:ring-zinc-800 shadow-sm">
                         <img
-                            src={`/authors/${author.toLowerCase().replace(/ /g, '-')}.jpg`}
+                            src={authorAvatar}
                             alt={author}
                             width={32}
                             height={32}
@@ -77,8 +119,8 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                             onerror="this.onerror=null;this.src='/authors/default.jpg'"
                         />
                     </div>
-                    <span class="font-medium text-zinc-900 dark:text-zinc-200">{author}</span>
-                </div>
+                    <span class="font-medium text-zinc-900 dark:text-zinc-200 hover:text-purple-600 transition-colors">{author}</span>
+                </a>
 
                 <span class="hidden md:inline">•</span>
 
@@ -96,7 +138,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                     class="flex items-center gap-2 px-4 py-2 rounded-full border border-rose-200/70 dark:border-rose-800/60 text-rose-500 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm hover:shadow active:scale-95"
                 >
                     <span id="like-icon-hero" class="text-base">♡</span>
-                    <span id="like-count-hero" class="text-sm font-semibold">—</span>
+                    <span id="like-count-hero" class="text-sm font-semibold">0</span>
                 </button>
 
                 <button
@@ -131,7 +173,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                                 class="group flex items-center gap-2 pl-3 pr-3 py-2 rounded-full border border-rose-200/70 dark:border-rose-800/60 text-rose-500 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm hover:shadow active:scale-95"
                             >
                                 <span id="like-icon-bottom" class="text-base">♡</span>
-                                <span id="like-count-bottom" class="text-sm font-semibold">—</span>
+                                <span id="like-count-bottom" class="text-sm font-semibold">0</span>
                             </button>
 
                             <button
@@ -224,18 +266,46 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 </Layout>
 
 <script define:vars={{ id, supabaseUrl, supabaseAnonKey }}>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         const slug = id || window.location.pathname.split('/blog/')[1]?.replace(/\/$/, '');
+        
+        console.log('📄 页面初始化 - Article slug:', slug);
 
-        // =================【🔥 新增注入：全栈数据分析追踪器】=================
+        // ===== 返回按钮处理 =====
+        const backBtn = document.getElementById('back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/';
+                }
+            });
+        }
+
+        // ===== 获取用户标识 =====
+        let userIdentifier = null;
+        
+        try {
+            const res = await fetch('/api/get-user-ip');
+            if (res.ok) {
+                const data = await res.json();
+                userIdentifier = data.ip;
+                console.log('✅ 用户IP:', userIdentifier);
+            }
+        } catch (error) {
+            console.warn('⚠️ 无法获取IP，使用备用指纹:', error);
+            userIdentifier = generateDeviceFingerprint();
+        }
+
+        // ===== 行为追踪 =====
         let startTime = Date.now();
         
-        // 监听浏览器隐藏/卸载事件（pagehide 对现代手机端和桌面单页应用跳转支持极佳）
         window.addEventListener('pagehide', () => {
             const timeSpent = (Date.now() - startTime) / 1000;
             const wordCount = document.getElementById('post-content-area')?.innerText?.trim()?.length || 0;
 
-            // 过滤无效低质量访问（停留大于 5 秒才上传）
             if (timeSpent > 5 && supabaseUrl && supabaseAnonKey) {
                 const payload = JSON.stringify({ 
                     word_count: wordCount, 
@@ -243,7 +313,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                     url: window.location.pathname 
                 });
 
-                // 使用原生 fetch 加上 keepalive，确保哪怕标签页瞬间关闭也能百分之百送达数据库
                 fetch(`${supabaseUrl}/rest/v1/blog_analytics`, {
                     method: 'POST',
                     headers: {
@@ -257,23 +326,8 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                 });
             }
         });
-        // ===================================================================
 
-        const progressBar = document.getElementById('progress-bar');
-        const progressPill = document.getElementById('progress-pill');
-
-        const updateProgress = () => {
-            const scrollTop = window.scrollY;
-            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-
-            if (progressBar) progressBar.style.width = scrollPercent + '%';
-            if (progressPill) progressPill.textContent = `${Math.round(scrollPercent)}%`;
-        };
-
-        window.addEventListener('scroll', updateProgress, { passive: true });
-        updateProgress();
-
+        // ===== 点赞系统 =====
         const likeButtons = [
             document.getElementById('like-btn-hero'),
             document.getElementById('like-btn-bottom'),
@@ -299,9 +353,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             document.getElementById('share-toast-bottom'),
         ];
 
-        const likedKey = `liked_${slug}`;
-
-        let isLiked = localStorage.getItem(likedKey) === '1';
+        let isLiked = false;
         let likeCount = 0;
         let isLikePending = false;
 
@@ -313,6 +365,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             'border-rose-300/80',
             'dark:border-rose-600/70',
             'scale-[1.01]',
+            'cursor-not-allowed',
         ];
 
         function updateLikeUI() {
@@ -328,111 +381,163 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                 if (isLiked) {
                     btn.classList.add(...likedClasses);
                     btn.setAttribute('aria-pressed', 'true');
+                    btn.disabled = true;
                 } else {
                     btn.classList.remove(...likedClasses);
                     btn.setAttribute('aria-pressed', 'false');
+                    btn.disabled = false;
                 }
             });
         }
 
+        // 获取当前点赞总数
         async function fetchLikeCount() {
-            if (!slug || !supabaseUrl || !supabaseAnonKey) return 0;
+            if (!slug || !supabaseUrl || !supabaseAnonKey) {
+                console.warn('❌ 缺少必要参数：slug或Supabase凭证');
+                return 0;
+            }
 
             try {
                 const res = await fetch(
                     `${supabaseUrl}/rest/v1/post_stats?slug=eq.${encodeURIComponent(slug)}&select=like_count`,
                     {
                         headers: {
-                            apikey: supabaseAnonKey,
-                            Authorization: `Bearer ${supabaseAnonKey}`,
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
                         },
                     }
                 );
 
-                if (!res.ok) return 0;
+                if (!res.ok) {
+                    console.error('❌ 获取点赞数失败:', res.status);
+                    return 0;
+                }
 
                 const data = await res.json();
-                return data?.[0]?.like_count ?? 0;
-            } catch {
+                const count = data?.[0]?.like_count ?? 0;
+                console.log('✅ 获取点赞数成功:', count);
+                return count;
+            } catch (error) {
+                console.error('❌ fetchLikeCount error:', error);
                 return 0;
             }
         }
 
-        async function initLike() {
-            likeCount = await fetchLikeCount();
-            updateLikeUI();
-        }
-
-        async function handleLike() {
-            if (!slug || isLikePending || !supabaseUrl || !supabaseAnonKey) return;
-
-            isLikePending = true;
-
-            const previousLiked = isLiked;
-            const previousCount = likeCount;
-            const delta = previousLiked ? -1 : 1;
-
-            isLiked = !previousLiked;
-            likeCount = Math.max(0, likeCount + delta);
-
-            if (isLiked) {
-                localStorage.setItem(likedKey, '1');
-            } else {
-                localStorage.removeItem(likedKey);
+        // 检查当前用户是否已赞
+        async function checkUserLikeStatus() {
+            if (!slug || !userIdentifier || !supabaseUrl || !supabaseAnonKey) {
+                console.warn('❌ 缺少必要参数，跳过已赞检查');
+                return false;
             }
 
-            updateLikeUI();
-
             try {
-                const res = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_like`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        apikey: supabaseAnonKey,
-                        Authorization: `Bearer ${supabaseAnonKey}`,
-                    },
-                    body: JSON.stringify({
-                        p_slug: slug,
-                        p_delta: delta,
-                    }),
-                });
+                const res = await fetch(
+                    `${supabaseUrl}/rest/v1/post_likes?slug=eq.${encodeURIComponent(slug)}&user_ip=eq.${encodeURIComponent(userIdentifier)}&select=id`,
+                    {
+                        headers: {
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
+                        },
+                    }
+                );
 
                 if (!res.ok) {
-                    console.error('increment_like failed:', res.status, await res.text());
+                    console.error('❌ 检查已赞状态失败:', res.status);
+                    return false;
+                }
 
-                    isLiked = previousLiked;
-                    likeCount = previousCount;
+                const data = await res.json();
+                const liked = data.length > 0;
+                console.log('✅ 用户已赞状态:', liked);
+                return liked;
+            } catch (error) {
+                console.error('❌ checkUserLikeStatus error:', error);
+                return false;
+            }
+        }
 
-                    if (isLiked) {
-                        localStorage.setItem(likedKey, '1');
-                    } else {
-                        localStorage.removeItem(likedKey);
+        // 初始化点赞状态
+        async function initLike() {
+            console.log('🔄 初始化点赞状态...');
+            likeCount = await fetchLikeCount();
+            isLiked = await checkUserLikeStatus();
+            updateLikeUI();
+            console.log(`✅ 初始化完成 - 总赞数: ${likeCount}, 当前用户已赞: ${isLiked}`);
+        }
+
+        // 处理点赞
+        async function handleLike() {
+            if (!slug || isLikePending || !supabaseUrl || !supabaseAnonKey || !userIdentifier) {
+                console.warn('❌ 缺少必要参数，无法点赞');
+                return;
+            }
+
+            if (isLiked) {
+                console.log('ℹ️ 您已经赞过这篇文章了');
+                return;
+            }
+
+            isLikePending = true;
+            console.log('🔄 正在提交点赞...');
+
+            try {
+                const res = await fetch(
+                    `${supabaseUrl}/rest/v1/rpc/increment_like`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
+                        },
+                        body: JSON.stringify({
+                            p_slug: slug,
+                            p_user_ip: userIdentifier,
+                        }),
                     }
+                );
 
+                console.log('📡 RPC 响应状态:', res.status);
+
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error('❌ RPC 调用失败:', res.status, errorText);
+                    alert('点赞失败，请稍后重试');
+                    isLikePending = false;
+                    return;
+                }
+
+                const result = await res.json();
+                console.log('✅ RPC 返回结果:', result);
+
+                if (result.success) {
+                    console.log('✅ 点赞成功！');
+                    isLiked = true;
+                    likeCount = result.like_count || likeCount + 1;
                     updateLikeUI();
-                }
-            } catch {
-                isLiked = previousLiked;
-                likeCount = previousCount;
-
-                if (isLiked) {
-                    localStorage.setItem(likedKey, '1');
                 } else {
-                    localStorage.removeItem(likedKey);
+                    console.warn('⚠️ 点赞失败:', result.error);
+                    if (result.code === 'ALREADY_LIKED') {
+                        isLiked = true;
+                        updateLikeUI();
+                        alert('您已经赞过这篇文章了');
+                    } else {
+                        alert(result.error || '点赞失败');
+                    }
                 }
-
-                updateLikeUI();
+            } catch (error) {
+                console.error('❌ 点赞请求异常:', error);
+                alert('点赞失败，请检查网络连接');
             } finally {
                 isLikePending = false;
             }
         }
 
+        // 分享功能
         function showShareToast() {
             shareToasts.forEach((toast) => {
                 if (!toast) return;
-
                 toast.style.opacity = '1';
-
                 setTimeout(() => {
                     toast.style.opacity = '0';
                 }, 2000);
@@ -459,29 +564,257 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             if (!slug || !supabaseUrl || !supabaseAnonKey) return;
 
             try {
-                const res = await fetch(`${supabaseUrl}/rest/v1/rpc/increment_share`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        apikey: supabaseAnonKey,
-                        Authorization: `Bearer ${supabaseAnonKey}`,
-                    },
-                    body: JSON.stringify({
-                        p_slug: slug,
-                    }),
-                });
+                const res = await fetch(
+                    `${supabaseUrl}/rest/v1/rpc/increment_share`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
+                        },
+                        body: JSON.stringify({
+                            p_slug: slug,
+                        }),
+                    }
+                );
 
                 if (!res.ok) {
-                    console.error('increment_share failed:', res.status, await res.text());
+                    console.error('❌ increment_share failed:', res.status);
+                    return;
                 }
+
+                const result = await res.json();
+                console.log('✅ 分享计数已更新:', result);
             } catch (err) {
-                console.error('increment_share error:', err);
+                console.error('❌ increment_share error:', err);
             }
         }
 
-        likeButtons.forEach((btn) => btn?.addEventListener('click', handleLike));
-        shareButtons.forEach((btn) => btn?.addEventListener('click', handleShare));
+        // 绑定事件
+        likeButtons.forEach((btn) => {
+            if (btn) btn.addEventListener('click', handleLike);
+        });
+        shareButtons.forEach((btn) => {
+            if (btn) btn.addEventListener('click', handleShare);
+        });
 
-        initLike();
+        // 初始化点赞
+        await initLike();
+
+        // ===== 【方案 B】AI 推荐系统 - 直接查询数据库存储的推荐 =====
+        async function initAIRecommendations() {
+            console.log('🤖 【方案B】初始化 AI 推荐系统...');
+            
+            if (!slug || !supabaseUrl || !supabaseAnonKey) {
+                console.warn('❌ 缺少必要参数，跳过推荐');
+                return;
+            }
+
+            try {
+                // 1️⃣ 获取当前文章存储的推荐列表
+                console.log(`[方案B] 正在查询文章 "${slug}" 的推荐列表...`);
+                
+                const { data: postData, error: postError } = await fetch(
+                    `${supabaseUrl}/rest/v1/post_embeddings?slug=eq.${encodeURIComponent(slug)}&select=recommendations`,
+                    {
+                        headers: {
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
+                        },
+                    }
+                ).then(r => r.json()).then(data => ({ data, error: null }))
+                .catch(err => ({ data: null, error: err }));
+
+                if (postError || !postData || postData.length === 0) {
+                    console.warn('⚠️ 未找到当前文章的推荐数据');
+                    return;
+                }
+
+                const recommendationSlugs = postData[0].recommendations;
+                console.log('✅ 获取到推荐列表:', recommendationSlugs);
+
+                if (!recommendationSlugs || recommendationSlugs.length === 0) {
+                    console.warn('⚠️ 推荐列表为空');
+                    return;
+                }
+
+                // 2️⃣ 批量查询推荐文章的详细信息
+                console.log('[方案B] 正在获取推荐文章的详细信息...');
+                
+                // 构建 PostgreSQL 的 IN 查询
+                const slugList = recommendationSlugs.map(s => `"${s}"`).join(',');
+                
+                const { data: recommendedPosts, error: recError } = await fetch(
+                    `${supabaseUrl}/rest/v1/post_embeddings?slug=in.(${encodeURIComponent(recommendationSlugs.join(','))})`
+                        + `&select=slug,title,description,embedding`,
+                    {
+                        headers: {
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
+                        },
+                    }
+                ).then(r => r.json()).then(data => ({ data, error: null }))
+                .catch(err => ({ data: null, error: err }));
+
+                if (recError || !recommendedPosts) {
+                    console.error('❌ 获取推荐文章详情失败:', recError);
+                    return;
+                }
+
+                console.log('✅ 获取到推荐文章数:', recommendedPosts.length);
+
+                // 3️⃣ 计算相似度（用于显示）
+                const currentEmbedding = postData[0].embedding ? parseEmbedding(postData[0].embedding) : null;
+                
+             const recommendationsWithSimilarity = recommendedPosts
+                .slice(0, 3)  
+                .map(post => ({
+                    slug: post.slug,
+                    title: post.title || '未命名',
+                    description: post.description || '暂无描述',
+                    similarity: currentEmbedding && post.embedding 
+                        ? cosineSimilarity(currentEmbedding, parseEmbedding(post.embedding))
+                        : 0.85
+                }));
+
+                console.log('✅ 推荐文章处理完毕:', recommendationsWithSimilarity.length);
+                recommendationsWithSimilarity.forEach(r => {
+                    console.log(`  - ${r.slug}: 相似度 ${r.similarity.toFixed(3)}`);
+                });
+
+                // 4️⃣ 渲染推荐卡片
+                renderRecommendations(recommendationsWithSimilarity);
+
+            } catch (error) {
+                console.error('❌ AI 推荐初始化失败:', error);
+            }
+        }
+
+        // 解析 embedding 数据
+        function parseEmbedding(embedding) {
+            try {
+                if (!embedding) return null;
+
+                if (Array.isArray(embedding)) {
+                    return embedding;
+                }
+
+                if (typeof embedding === 'string') {
+                    const cleaned = embedding
+                        .replace(/^\[/, '')
+                        .replace(/\]$/, '')
+                        .split(',')
+                        .map(v => {
+                            const num = parseFloat(v.trim());
+                            return isNaN(num) ? 0 : num;
+                        });
+                    return cleaned.length > 0 ? cleaned : null;
+                }
+
+                return null;
+            } catch (error) {
+                console.error('❌ parseEmbedding 错误:', error);
+                return null;
+            }
+        }
+
+        // 余弦相似度计算
+        function cosineSimilarity(vecA, vecB) {
+            if (!vecA || !vecB || vecA.length !== vecB.length) {
+                return 0;
+            }
+
+            let dotProduct = 0;
+            let magnitudeA = 0;
+            let magnitudeB = 0;
+
+            for (let i = 0; i < vecA.length; i++) {
+                dotProduct += vecA[i] * vecB[i];
+                magnitudeA += vecA[i] * vecA[i];
+                magnitudeB += vecB[i] * vecB[i];
+            }
+
+            magnitudeA = Math.sqrt(magnitudeA);
+            magnitudeB = Math.sqrt(magnitudeB);
+
+            if (magnitudeA === 0 || magnitudeB === 0) {
+                return 0;
+            }
+
+            return dotProduct / (magnitudeA * magnitudeB);
+        }
+
+        // 渲染推荐卡片
+        function renderRecommendations(recommendations) {
+            const container = document.getElementById('ai-recommendations');
+            const section = document.getElementById('ai-rec-section');
+            
+            if (!container) return;
+
+            if (recommendations.length === 0) {
+                if (section) section.classList.add('hidden');
+                return;
+            }
+
+            container.innerHTML = recommendations
+                .map(post => `
+                    <a href="/blog/${post.slug}/" class="group block">
+                        <div class="p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg transition-all duration-300 bg-white dark:bg-zinc-900/50">
+                            <div class="flex items-start justify-between gap-4 mb-4">
+                                <h3 class="text-lg font-bold text-zinc-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors flex-grow">
+                                    ${post.title}
+                                </h3>
+                                <span class="shrink-0 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold rounded-full whitespace-nowrap">
+                                    ${(post.similarity * 100).toFixed(0)}% マッチ
+                                </span>
+                            </div>
+
+                            <p class="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-4">
+                                ${post.description}
+                            </p>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs text-zinc-500">おすすめ指数</span>
+                                    <div class="flex gap-1">
+                                        ${Array(5).fill(0).map((_, i) => `
+                                            <div class="w-1.5 h-1.5 rounded-full ${i < Math.ceil(post.similarity * 5) ? 'bg-purple-500' : 'bg-zinc-300 dark:bg-zinc-600'}"></div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                <svg class="w-5 h-5 text-zinc-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-all transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                `)
+                .join('');
+
+            if (section) section.classList.remove('hidden');
+            console.log('✅ 推荐卡片渲染完成');
+        }
+
+        // 初始化推荐系统
+        await initAIRecommendations();
     });
+
+    // ===== 设备指纹函数 =====
+    function generateDeviceFingerprint() {
+        const ua = navigator.userAgent;
+        const screen = `${window.screen.width}x${window.screen.height}`;
+        const tz = new Date().getTimezoneOffset();
+        
+        const fingerprint = `${ua}|${screen}|${tz}`;
+        
+        let hash = 0;
+        for (let i = 0; i < fingerprint.length; i++) {
+            const char = fingerprint.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        
+        return `fp_${Math.abs(hash)}`;
+    }
 </script>

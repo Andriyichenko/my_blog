@@ -18,7 +18,6 @@
           url: window.location.pathname 
         });
 
-        # 绕过 SDK，直接使用原生 fetch 配合 keepalive 冲破浏览器拦截
         fetch(`${supabaseUrl}/rest/v1/blog_analytics`, {
           method: 'POST',
           headers: {
@@ -28,7 +27,7 @@
             'Prefer': 'return=minimal' // 告诉 Supabase 插入后不返回整行数据，能极大提高传输效率
           },
           body: payload,
-          keepalive: true # 核心：确保在网页销毁、刷新时请求不被断开
+          keepalive: true 
         });
       }
     });

@@ -1,0 +1,266 @@
+---
+title: "確率・統計の基礎と応用：ランダムからデータ推定まで"
+description: "一篇覆盖概率公理、随机变量、极限定理与统计推断的综述。我们将沿着「描述随机 → 反推世界 → 落地机器学习」这条主线，把零散的公式串成一张完整的认知地图。"
+pubDate: "2026-06-24"
+subcategory: "Probability"
+tags: ["確率", "数理統計", "ベイズ法則",  "機械学習"]
+author: "Jinyu LIU"
+---
+## 引言
+
+如果说微积分研究的是「确定的变化」，那么概率统计研究的就是「不确定中的规律」。我们无法预测某一次抛硬币的结果，却能精确刻画抛一万次后正面出现的比例；我们看不清单个用户会不会点击广告，却能从十万条日志里估计出点击率以及它的可信区间。
+
+概率论与数理统计像是同一枚硬币的两面：**概率论**从已知的模型出发，推演数据会长成什么样（正向）；**统计学**则从观测到的数据出发，反推背后那个看不见的模型（逆向）。这篇文章会沿着「描述随机 → 反推世界 → 落地应用」这条主线，把贝叶斯定理、中心极限定理、最大似然估计这些看似零散的知识点，串成一张完整的地图。
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 全文主线</h3>
+  <div className="text-amber-900">
+    <strong>概率（正向）</strong>：已知分布 → 计算「数据出现的可能性」。<br/>
+    <strong>统计（逆向）</strong>：已知数据 → 反推「最可能的分布参数」。<br/>
+    最大似然估计 (MLE) 与贝叶斯推断，正是连接这两个方向的桥梁。
+  </div>
+</div>
+
+## 1. 概率的语言：样本空间、事件与公理
+
+一切从三个基本概念开始：**样本空间 (sample space)** $\Omega$ 是一次随机试验所有可能结果的集合；**事件 (event)** $A$ 是 $\Omega$ 的一个子集；而**概率 (probability)** $P$ 则是一个把事件映射到 $[0,1]$ 区间的函数。
+
+柯尔莫哥洛夫 (Kolmogorov) 用三条公理就为整个概率论奠了基：
+
+- **非负性**：$P(A) \ge 0$
+- **规范性**：$P(\Omega) = 1$
+- **可列可加性**：若 $A_1, A_2, \dots$ 两两互斥，则 $P\left(\bigcup_i A_i\right) = \sum_i P(A_i)$
+
+### 条件概率与独立性
+
+当我们获得「部分信息」后，概率会随之更新。在已知事件 $B$ 发生的条件下，事件 $A$ 的**条件概率 (conditional probability)** 为：
+
+$$
+P(A \mid B) = \frac{P(A \cap B)}{P(B)}, \quad P(B) > 0
+$$
+
+如果 $P(A \cap B) = P(A)P(B)$，我们称 $A$ 与 $B$ **独立 (independent)**——即一个事件的发生不改变另一个事件的概率。
+
+### 贝叶斯定理：信息的更新引擎
+
+结合**全概率公式 (law of total probability)** $P(B) = \sum_i P(B \mid A_i)P(A_i)$，我们就能把条件概率「反过来」：
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">THEOREM</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">贝叶斯定理 (Bayes' Theorem)</h3>
+</div>
+
+$$
+P(A \mid B) = \frac{P(B \mid A)\,P(A)}{P(B)}
+$$
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 核心直觉</h3>
+  <div className="text-amber-900">
+    贝叶斯定理本质上是「<strong>用证据更新信念</strong>」。$P(A)$ 是看到数据前的<strong>先验</strong>，$P(B \mid A)$ 是数据带来的<strong>似然</strong>，相乘再归一化，就得到了看到数据后的<strong>后验</strong> $P(A \mid B)$。后面整个贝叶斯统计、朴素贝叶斯分类器，都是这一行公式的延伸。
+  </div>
+</div>
+
+## 2. 随机变量与常见分布
+
+**随机变量 (random variable)** $X$ 把样本空间的结果映射成数值，让我们可以对随机现象做数学运算。它分两类，各自有一套刻画工具：
+
+- **离散型**：用**概率质量函数 (PMF)** $p(x) = P(X = x)$ 描述。
+- **连续型**：用**概率密度函数 (PDF)** $f(x)$ 描述，此时单点概率为 0，概率体现为面积 $P(a \le X \le b) = \int_a^b f(x)\,dx$。
+
+两者都可统一用**累积分布函数 (CDF)** $F(x) = P(X \le x)$ 来刻画。
+
+### 常见分布速查
+
+| 分布 | 类型 | 典型场景 |
+| --- | --- | --- |
+| 伯努利 (Bernoulli) | 离散 | 单次「是/否」试验 |
+| 二项 (Binomial) | 离散 | $n$ 次独立伯努利试验的成功数 |
+| 泊松 (Poisson) | 离散 | 单位时间内的稀有事件计数 |
+| 均匀 (Uniform) | 连续 | 完全无偏好的取值 |
+| 指数 (Exponential) | 连续 | 事件之间的等待时间 |
+| 正态 (Normal) | 连续 | 大量微小因素叠加的结果 |
+
+### 高斯分布：统计学的主角
+
+在所有分布里，**正态分布（高斯分布）** 地位最特殊，它的 PDF 为：
+
+$$
+f(x) = \frac{1}{\sigma\sqrt{2\pi}} \exp\!\left( -\frac{(x-\mu)^2}{2\sigma^2} \right)
+$$
+
+它之所以无处不在，根本原因藏在第 4 节的中心极限定理里。在机器学习中，我们更常用它的多维推广——**多元高斯分布 (multivariate Gaussian)**：
+
+<div className="p-4 border-2 border-gray-200 rounded-lg text-center my-6">
+  $$
+  f(\mathbf{x}) = \frac{1}{(2\pi)^{d/2} |\boldsymbol{\Sigma}|^{1/2}} \exp\!\left( -\frac{1}{2} (\mathbf{x}-\boldsymbol{\mu})^{\top} \boldsymbol{\Sigma}^{-1} (\mathbf{x}-\boldsymbol{\mu}) \right)
+  $$
+</div>
+
+<div className="text-sm text-gray-500">
+其中 $\boldsymbol{\mu}$ 是均值向量，$\boldsymbol{\Sigma}$ 是协方差矩阵。它是高斯混合模型 (GMM)、线性判别分析 (LDA)、以及 PCA 概率视角的共同基石。
+</div>
+
+## 3. 数字特征：期望、方差与协方差
+
+完整的分布信息往往太多，我们需要几个「概括性指标」来抓住要害。
+
+**期望 (expectation)** 描述分布的中心（重心）：
+
+$$
+E[X] = \sum_x x\,p(x) \quad \text{或} \quad E[X] = \int_{-\infty}^{\infty} x\,f(x)\,dx
+$$
+
+**方差 (variance)** 描述分布的离散程度，一个极常用的等价公式是：
+
+$$
+\operatorname{Var}(X) = E\big[(X - \mu)^2\big] = E[X^2] - \big(E[X]\big)^2
+$$
+
+当我们关心两个变量「一起变」的程度时，就要用**协方差 (covariance)** 与**相关系数 (correlation coefficient)**：
+
+$$
+\operatorname{Cov}(X, Y) = E\big[(X - \mu_X)(Y - \mu_Y)\big], \qquad \rho_{XY} = \frac{\operatorname{Cov}(X, Y)}{\sigma_X \sigma_Y}
+$$
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 一个常见陷阱</h3>
+  <div className="text-amber-900">
+    相关系数 $\rho$ 只衡量<strong>线性相关</strong>。$\rho = 0$ 只意味着「没有线性关系」，并不代表独立——两个变量完全可能存在很强的非线性依赖（比如 $Y = X^2$）却恰好 $\rho = 0$。<strong>独立一定不相关，不相关却未必独立。</strong>
+  </div>
+</div>
+
+把多个变量两两的协方差排成矩阵，就得到了**协方差矩阵** $\boldsymbol{\Sigma}$——它正是从这里自然过渡到主成分分析 (PCA) 的：PCA 做的事，本质上就是对 $\boldsymbol{\Sigma}$ 做特征分解，找到方差最大的方向。
+
+## 4. 大数定律与中心极限定理
+
+这两条极限定理，是「为什么我们能用样本推断总体」的理论靠山。
+
+**大数定律 (Law of Large Numbers, LLN)** 告诉我们：当样本量 $n \to \infty$ 时，样本均值 $\bar{X}_n$ 几乎必然收敛到真实期望 $\mu$。这就是「抛硬币次数足够多，正面比例必然趋近 0.5」的严格表述。
+
+而真正神奇的是**中心极限定理 (Central Limit Theorem, CLT)**：
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">THEOREM</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">中心极限定理 (CLT)</h3>
+</div>
+
+设 $X_1, \dots, X_n$ 独立同分布，均值为 $\mu$、方差为 $\sigma^2$，则当 $n$ 足够大时，标准化后的样本均值趋于标准正态分布：
+
+$$
+\frac{\bar{X}_n - \mu}{\sigma / \sqrt{n}} \ \xrightarrow{\ d\ }\ \mathcal{N}(0, 1)
+$$
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 核心直觉</h3>
+  <div className="text-amber-900">
+    CLT 最反直觉、也最强大的地方在于：<strong>无论原始分布长什么样</strong>（均匀、指数、甚至奇形怪状），只要把足够多的独立样本「平均」起来，它们的均值分布<strong>总会趋于一条钟形曲线</strong>。这正是高斯分布无处不在的根本原因，也是所有「用 $\pm 1.96\sigma$ 构造置信区间」做法的理论根基。
+  </div>
+</div>
+
+## 5. 统计推断（上）：参数估计
+
+从这里开始，我们正式从「概率」翻转到「统计」——已知数据，反推参数 $\theta$。
+
+### 点估计与最大似然估计
+
+最朴素的思路是**矩估计 (method of moments)**：用样本矩去匹配总体矩。但应用最广的是**最大似然估计 (Maximum Likelihood Estimation, MLE)**，它的哲学只有一句话：**「哪个参数最可能生成我手里这批数据，就选它。」**
+
+给定独立同分布的样本，似然函数是各样本概率的连乘，取对数后变成求和，便于求导：
+
+$$
+\hat{\theta}_{\text{MLE}} = \arg\max_{\theta}\ \prod_{i=1}^{n} f(x_i; \theta) = \arg\max_{\theta}\ \sum_{i=1}^{n} \ln f(x_i; \theta)
+$$
+
+以高斯分布为例，对对数似然分别关于 $\mu$、$\sigma^2$ 求偏导并令其为零，可解得一个非常漂亮的结果：
+
+<div className="p-4 border-2 border-gray-200 rounded-lg text-center my-6">
+  $$
+  \hat{\mu} = \frac{1}{n}\sum_{i=1}^{n} x_i, \qquad \hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^{n}(x_i - \hat{\mu})^2
+  $$
+</div>
+
+也就是说，高斯分布的 MLE 恰好就是样本均值和样本方差。这套推导你在模式识别里见过，它也是几乎所有概率模型「学参数」的通用框架。
+
+### 估计量的好坏
+
+同一个参数可以有很多估计量，我们用四条标准衡量优劣：**无偏性 (unbiasedness)**——期望等于真值；**有效性 (efficiency)**——方差更小；**一致性 (consistency)**——样本越多越准；**充分性 (sufficiency)**——是否榨干了数据中的全部信息。
+
+### 区间估计
+
+点估计给一个数，**区间估计 (interval estimation)** 则给一个范围加上「可信程度」。当总体方差已知时，均值的 $(1-\alpha)$ 置信区间为：
+
+$$
+\bar{X} \pm z_{\alpha/2}\,\frac{\sigma}{\sqrt{n}}
+$$
+
+注意它的正确解读：「在重复抽样的意义下，约有 $95\%$ 的此类区间会覆盖真实均值」，而**不是**「真值有 $95\%$ 的概率落在这个具体区间里」。
+
+## 6. 统计推断（下）：假设检验
+
+假设检验回答的是「数据是否显著支持某个结论」。它的逻辑像一场「无罪推定」的审判。
+
+整个流程是：先立一个**原假设 (null hypothesis)** $H_0$（通常是「没有效应」的保守立场）和**备择假设 (alternative)** $H_1$；然后计算一个**检验统计量**；再看在 $H_0$ 为真的前提下，出现「当前或更极端数据」的概率，即 **p 值 (p-value)**；若 p 值小于预设的**显著性水平 (significance level)** $\alpha$，就拒绝 $H_0$。
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 两类错误别搞混</h3>
+  <div className="text-amber-900">
+    <strong>第一类错误 (Type I)</strong>：$H_0$ 为真却被拒绝（冤枉好人），概率为 $\alpha$。<br/>
+    <strong>第二类错误 (Type II)</strong>：$H_0$ 为假却没拒绝（放过坏人），概率为 $\beta$。<br/>
+    而 <strong>检验功效 (power)</strong> $= 1 - \beta$，表示「真有效应时，我们能成功发现它的能力」。p 值小不代表效应大，它只代表「在 $H_0$ 下这数据很罕见」。
+  </div>
+</div>
+
+常用检验各有适用场景：**z 检验 / t 检验**用于比较均值（方差已知用 z，未知且小样本用 t）；**卡方检验 ($\chi^2$)** 用于检验拟合优度与列联表的独立性；**F 检验 / 方差分析 (ANOVA)** 用于比较多组均值或方差。
+
+## 7. 贝叶斯统计：先验、似然与后验
+
+第 5、6 节属于「频率派 (frequentist)」视角——把参数看成固定但未知的常数。**贝叶斯派 (Bayesian)** 则把参数本身看成随机变量，用概率分布来表达对它的不确定信念。回到第 1 节那行贝叶斯定理，换上参数的语言：
+
+$$
+\underbrace{p(\theta \mid D)}_{\text{后验 posterior}} \ \propto\ \underbrace{p(D \mid \theta)}_{\text{似然 likelihood}} \cdot \underbrace{p(\theta)}_{\text{先验 prior}}
+$$
+
+如果取使后验最大的参数，就得到**最大后验估计 (MAP)**：
+
+$$
+\hat{\theta}_{\text{MAP}} = \arg\max_{\theta}\ p(D \mid \theta)\,p(\theta)
+$$
+
+<div className="text-sm text-gray-500">
+对比一下：MLE 只看似然，MAP 在似然之外乘了一个先验。当先验取「无信息」的均匀分布时，MAP 就退化成 MLE。换句话说，<strong>MLE 是 MAP 的一个特例</strong>。这也解释了机器学习里 L2 正则化的本质——它等价于给参数加了一个高斯先验。
+</div>
+
+## 8. 应用：从统计到机器学习
+
+理论的价值在落地。下面几个模型，几乎都是前七节内容的直接拼装。
+
+**朴素贝叶斯分类器 (Naive Bayes)**：直接套用贝叶斯定理，再加一个「特征条件独立」的简化假设：
+
+$$
+\hat{y} = \arg\max_{y}\ P(y) \prod_{j=1}^{d} P(x_j \mid y)
+$$
+
+**线性回归与最小二乘 (Least Squares)**：寻找让残差平方和最小的直线。
+
+$$
+\min_{\beta_0, \beta_1}\ \sum_{i=1}^{n} \big( y_i - (\beta_0 + \beta_1 x_i) \big)^2
+$$
+
+一个深刻的事实是：在「误差服从高斯分布」的假设下，最小二乘解恰好等于参数的最大似然解——回归与第 5 节由此打通。
+
+**高斯混合模型 (GMM)**：用多个高斯分布的加权和来拟合复杂数据，并通过 EM 算法迭代地做「软分配 + 重估参数」，本质上是带隐变量的最大似然。
+
+**蒙特卡洛方法 (Monte Carlo)**：当积分算不出来时，就用大数定律「采样求平均」来逼近期望：
+
+$$
+E[g(X)] \approx \frac{1}{N} \sum_{i=1}^{N} g(x_i), \qquad x_i \sim p(x)
+$$
+
+## 总结一下
+
+概率统计的整张地图，可以收束成一条主线：**概率论**教我们从模型推演数据（正向），**统计学**教我们从数据反推模型（逆向），而**贝叶斯定理**与**最大似然估计**是连接两者的桥梁；**中心极限定理**则保证了在足够多的数据面前，这一切推断都有坚实的正态分布作底。
+
+掌握了这套框架，你会发现机器学习里那些模型——朴素贝叶斯、线性回归、GMM——都不过是这几块基石的不同组合方式。
+
+而当我们把视线从「静态的随机变量」转向「随时间演化的随机过程」时，故事就进入了**随机微积分**的领域。届时你会遇到布朗运动，以及那个让经典链式法则失效、多出一个 $\frac{1}{2}\sigma^2$ 项的——伊藤引理。那是另一篇文章的主角了。

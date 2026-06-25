@@ -1,10 +1,10 @@
 ---
-title: Method of Steepest Descent
-subtitle: 最急降下法
-description: "test"
+title: (Sample)Method of Steepest Descent
+description: "最急降下法的数学原理，通过泰勒展开和拉格朗日乘数法推导最优下降方向"
 pubDate: 2025-11-26
 subcategory: "Machine Learning"
 tags: ["Machine Learning", "Deep Learning","test"]
+author: "Andre YI"
 ---
 
 > **摘要**: 本文探讨了最急降下法的数学原理，通过泰勒展开和拉格朗日乘数法推导最优下降方向，分析了标准梯度下降法的收敛性，并讨论了“峡谷形”函数的特殊情况。
@@ -37,40 +37,40 @@ $$
   <div className="math-theorem-title">Theorem: Optimal Descent Direction</div>
 在约束条件 $||\nu||=1$ 下，使得 $\langle \nabla f(x^0), \nu \rangle$ 最小化的向量为：
   $$ 
-  ν^* = -rac{∇ f(x^0)}{||∇ f(x^0)||} 
+  ν^* = -\frac{∇ f(x^0)}{||∇ f(x^0)||} 
   $$ 
 </div>
 
 <div className="math-proof">
     我们使用 **拉格朗日未定乘数法 (Lagrange Multipliers)** 来证明。
 
-**Step     **Step 1: 构造拉格朗日函数**  
+**Step 1: 构造拉格朗日函数**  
     在制约条件 $||\nu||^2 - 1 = 0$ 下最小化目标函数。设拉格朗日函数为：
     $$ 
     ℓ(ν, λ) = < ∇ f(x^0), ν > + λ(||ν||^2 - 1)
     $$ 
 
-**Step     **Step 2: 求解偏导数**  
+**Step 2: 求解偏导数**  
     对 $\nu$ 求偏导并令其为 0：
     $$ 
-    rac{∂ ℓ}{∂ ν} = ∇ f(x^0) + 2λν = 0
+    \frac{∂ ℓ}{∂ ν} = ∇ f(x^0) + 2λν = 0
     $$ 
     由此得到：
     $$ 
-    ν = -rac{1}{2λ}∇ f(x^0)
+    ν = -\frac{1}{2λ}∇ f(x^0)
     $$ 
 
-**Step     **Step 3: 利用约束条件求解 $\lambda$**  
+**Step 3: 利用约束条件求解 $\lambda$**  
     代入 $||\nu||^2=1$：
     $$ 
-    ||ν||^2 = rac{1}{4λ^2}||∇ f(x^0)||^2 = 1 = > λ = ± rac{1}{2}||∇ f(x^0)||
+    ||ν||^2 = \frac{1}{4λ^2}||∇ f(x^0)||^2 = 1 = > λ = ± \frac{1}{2}||∇ f(x^0)||
     $$ 
-    为了使目标函数 $\langle \nabla f(x^0), \nu \rangle = - rac{1}{2λ}}||∇ f(x^0)||^2$ 最小，我们需要 $\lambda$ 取正值（使整体为负）。因此取 $\lambda_0 = rac{1}{2}}||∇ f(x^0)||$。
+    为了使目标函数 $\langle \nabla f(x^0), \nu \rangle = - \frac{1}{2λ}||∇ f(x^0)||^2$ 最小，我们需要 $\lambda$ 取正值（使整体为负）。因此取 $\lambda_0 = \frac{1}{2}||∇ f(x^0)||$。
 
     **结论：**  
     将 $\lambda_0$ 代回 $\nu$ 的表达式：
     $$ 
-    ν^* = -rac{∇ f(x^0)}{||∇ f(x^0)||}
+    ν^* = -\frac{∇ f(x^0)}{||∇ f(x^0)||}
     $$ 
 </div>
 
@@ -81,7 +81,7 @@ $$
 基于上述推导，我们定义迭代公式。
 从初始点 $x^0$ 开始，迭代公式为：
 $$ 
- x^{n+1} = x^n + η ν^* = x^n - η rac{∇ f(x^n)}{||∇ f(x^n)||} 
+ x^{n+1} = x^n + η ν^* = x^n - η \frac{∇ f(x^n)}{||∇ f(x^n)||} 
 $$ 
 这里 $\eta$ 被称为**学习率 (Learning Rate)**。
 
@@ -99,48 +99,46 @@ $$
   <div className="math-theorem-title">Proposition: Convergence Equivalence</div>
   序列 $(x^n)$ 收敛当且仅当梯度序列 $\nabla f(x^n)$ 收敛于 0。即：
   $$ 
-  (x^n) 	ext{ converges} < = ∇ f(x^n) 
-ightarrow 0 < < (n 
-ightarrow ∞) 
+  (x^n) 	\text{ converges} \iff ∇ f(x^n) \rightarrow 0 \quad (n \rightarrow \infty) 
   $$ 
 </div>
 
 <div className="math-proof">
-    **($⇒$) 方向：**  
+    **($\Rightarrow$) 方向：**  
     若 $(x^n)$ 收敛，则 $\lim_{n 	o ∞} ||x^{n+1} - x^n|| = 0$。根据迭代式 $||x^{n+1} - x^n|| = \delta ||\nabla f(x^n)||$，可得 $\lim_{n 	o ∞} ∇ f(x^n) = 0$。
 
-    **($⇐$) 方向：**  
-    若 $∇ f(x^n) 	o 0$，利用三角不等式考查 $||x^{n+p} - x^n||$：
+    **($\Leftarrow$) 方向：**  
+    若 $\nabla f(x^n) 	o 0$，利用三角不等式考查 $||x^{n+p} - x^n||$：
     $$ 
-    ||x^{n+p} - x^n|| < = ∑_{j=0}^{p-1} ||x^{n+j+1} - x^{n+j}|| = δ ∑_{j=0}^{p-1} ||∇ f(x^{n+j})||
+    ||x^{n+p} - x^n|| \iff \displaystyle\sigma_{j=0}^{p-1} ||x^{n+j+1} - x^{n+j}|| = \delta \sigma_{j=0}^{p-1} ||\nabla f(x^{n+j})||
     $$ 
-    当 $n 	o ∞$ 时，右边趋于 0，说明 $(x^n)$ 是柯西列 (Cauchy Sequence)，因此收敛。
+    当 $n\to \infty$ 时，右边趋于 0，说明 $(x^n)$ 是柯西列 (Cauchy Sequence)，因此收敛。
 </div>
 
 ---
 
 ## 5. 峡谷形函数 (Canyon Type) 的特殊举动
 
-考虑一个典型的“峡谷”函数示例：
-$$ 
- f(x, y) = rac{1}{2}y^2 - x, < (x, y) > (0, 1) · (-2, 2) 
-$$ 
+考虑一个典型的"峡谷"函数示例：
+$$
+    f(x, y) = \frac{1}{2}y^2 - x, \quad (x, y) \in (0, 1) \times (-2, 2)
+$$
 其梯度为 $\nabla f = (-1, y)^T$。迭代公式变为：
-$$ 
- egin{cases}
- x^{n+1} = x^n + δ 
- y^{n+1} = (1 - δ)y^n
- }
-$$ 
+$$
+    \begin{cases}
+        x^{n+1} = x^n + \delta \\
+        y^{n+1} = (1 - \delta)y^n
+    \end{cases}
+$$
 
 ### 学习率 $\delta$ 的影响
-对于 $y$ 方向的收敛，我们需要 $|1-\delta| < 1 = > 0 < δ < 2$。在此范围内，有两种截然不同的行为：
+对于 $y$ 方向的收敛，我们需要 $|1-\delta| < 1 = > 0 < \delta < 2$。在此范围内，有两种截然不同的行为：
 
-1.  **单调收敛 ($0 < δ < 1$)**: 
+1.  **单调收敛 ($0 < \delta < 1$)**: 
     * $1-\delta > (0, 1)$，$(y^n)$ 单调趋于 0。
     * $x$ 方向以步长 $\delta$ 线性增加，直到边界。
     
-2.  **震荡收敛 ($1 < δ < 2$)**: 
+2.  **震荡收敛 ($1 < \delta < 2$)**: 
     * $1-\delta > (-1, 0)$，$y^n$ 符号交替变化（震荡）。
     * 这对应于算法在峡谷两壁之间来回跳跃 (Zig-zag) 的现象。
 

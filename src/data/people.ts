@@ -11,7 +11,7 @@ export const people = [
     email: 'andreyi@outlook.jp',
     shortBio: '数理ファイナンス、機械学習および数値解析の研究に取り組んでいます。',
     github: 'https://github.com/Andriyichenko',
-    website: 'https://contact.andreyis.com',
+    website: 'https://www.andreyis.com',
     bio: `はじめまして、伊冉（イ ゼン）と申します。
     2019年に来日し、今年で日本での生活は8年目を迎えました。立命館大学理工学部数理科学科を卒業後、2026年に同大学院の理工学研究科へ進学しました。専門は数理ファイナンスおよび機械学習で、特にモンテカルロ・シミュレーションを活用した数値解析に取り組んでいます。私の趣味は囲碁ですが、碁盤上における「神の一手」への探求心は、形を変えて現在の数理科学研究にも息づいています。不確実な確率の世界から最適解を導き出すプロセスは、まさに自分にとっての「神の一手」を追う旅路そのものです。`,
   },
@@ -92,7 +92,7 @@ export const people = [
     nameEn: 'Jinyu LIU',
     role: '機械学習/最適化',
     category: ['math'] as const,
-    avatar: '/authors/liu-jin-yu.jpg',
+    avatar: '/authors/jinyu-liu.jpg',
     email: 'liujinyu123456@outlook.jp',
     github: 'https://github.com/liuj41530kakalulu',
     shortBio: 'AI画像認識/機械学習/最適化',
