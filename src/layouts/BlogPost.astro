@@ -285,17 +285,45 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
         }
 
         // ===== 获取用户标识 =====
-        let userIdentifier = null;
+        // let userIdentifier = null;
         
+        // try {
+        //     const res = await fetch('/api/get-user-ip');
+        //     if (res.ok) {
+        //         const data = await res.json();
+        //         userIdentifier = data.ip;
+        //         console.log('✅ 用户IP:', userIdentifier);
+        //     }
+        // } catch (error) {
+        //     console.warn('⚠️ 无法获取IP，使用备用指纹:', error);
+        //     userIdentifier = generateDeviceFingerprint();
+        // }
+        // ===== 获取用户标识 =====
+        let userIdentifier = null;
+
+        async function getUserIP() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                if (res.ok) {
+                    const data = await res.json();
+                    return data.ip;
+                }
+            } catch (error) {
+                console.warn('⚠️ 无法获取IP');
+            }
+            return null;
+        }
+
         try {
-            const res = await fetch('/api/get-user-ip');
-            if (res.ok) {
-                const data = await res.json();
-                userIdentifier = data.ip;
+            userIdentifier = await getUserIP();
+            if (userIdentifier) {
                 console.log('✅ 用户IP:', userIdentifier);
+            } else {
+                console.warn('⚠️ 未获取到IP，使用备用指纹');
+                userIdentifier = generateDeviceFingerprint();
             }
         } catch (error) {
-            console.warn('⚠️ 无法获取IP，使用备用指纹:', error);
+            console.warn('⚠️ 异常，使用备用指纹:', error);
             userIdentifier = generateDeviceFingerprint();
         }
 
@@ -365,7 +393,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             'border-rose-300/80',
             'dark:border-rose-600/70',
             'scale-[1.01]',
-            'cursor-not-allowed',
         ];
 
         function updateLikeUI() {
@@ -381,7 +408,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                 if (isLiked) {
                     btn.classList.add(...likedClasses);
                     btn.setAttribute('aria-pressed', 'true');
-                    btn.disabled = true;
+                    btn.disabled = false;  // 保持启用，允许取消
                 } else {
                     btn.classList.remove(...likedClasses);
                     btn.setAttribute('aria-pressed', 'false');
@@ -465,18 +492,23 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             console.log(`✅ 初始化完成 - 总赞数: ${likeCount}, 当前用户已赞: ${isLiked}`);
         }
 
-        // 处理点赞
+        // 处理点赞 - 支持切换
         async function handleLike() {
             if (!slug || isLikePending || !supabaseUrl || !supabaseAnonKey || !userIdentifier) {
                 console.warn('❌ 缺少必要参数，无法点赞');
                 return;
             }
 
+            // 如果已赞，则取消赞；否则点赞
             if (isLiked) {
-                console.log('ℹ️ 您已经赞过这篇文章了');
-                return;
+                await handleUnlike();
+            } else {
+                await addLike();
             }
+        }
 
+        // 点赞
+        async function addLike() {
             isLikePending = true;
             console.log('🔄 正在提交点赞...');
 
@@ -520,7 +552,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                     if (result.code === 'ALREADY_LIKED') {
                         isLiked = true;
                         updateLikeUI();
-                        alert('您已经赞过这篇文章了');
+                        console.log('ℹ️ 您已经赞过这篇文章了');
                     } else {
                         alert(result.error || '点赞失败');
                     }
@@ -528,6 +560,65 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             } catch (error) {
                 console.error('❌ 点赞请求异常:', error);
                 alert('点赞失败，请检查网络连接');
+            } finally {
+                isLikePending = false;
+            }
+        }
+
+        // 取消点赞
+        async function handleUnlike() {
+            isLikePending = true;
+            console.log('🔄 正在取消点赞...');
+
+            try {
+                const res = await fetch(
+                    `${supabaseUrl}/rest/v1/post_likes?slug=eq.${encodeURIComponent(slug)}&user_ip=eq.${encodeURIComponent(userIdentifier)}`,
+                    {
+                        method: 'DELETE',
+                        headers: {
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
+                        },
+                    }
+                );
+
+                console.log('📡 DELETE 响应状态:', res.status);
+
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error('❌ 取消点赞失败:', res.status, errorText);
+                    alert('取消点赞失败，请稍后重试');
+                    isLikePending = false;
+                    return;
+                }
+
+                console.log('✅ 取消点赞成功！');
+                isLiked = false;
+                likeCount = Math.max(0, likeCount - 1);
+                updateLikeUI();
+
+                // 更新 post_stats 中的 like_count
+                try {
+                    await fetch(
+                        `${supabaseUrl}/rest/v1/rpc/decrement_like`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'apikey': supabaseAnonKey,
+                                'Authorization': `Bearer ${supabaseAnonKey}`,
+                            },
+                            body: JSON.stringify({
+                                p_slug: slug,
+                            }),
+                        }
+                    );
+                } catch (err) {
+                    console.warn('⚠️ 更新点赞计数失败:', err);
+                }
+            } catch (error) {
+                console.error('❌ 取消点赞请求异常:', error);
+                alert('取消点赞失败，请检查网络连接');
             } finally {
                 isLikePending = false;
             }

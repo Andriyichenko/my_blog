@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-export const prerender = false;
+//export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   // 从不同的 header 中尝试获取真实 IP
