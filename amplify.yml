@@ -44,7 +44,8 @@ frontend:
     preBuild:
       commands:
         - echo "===> Installing frontend dependencies..."
-        - npm ci --legacy-peer-deps
+        - rm -rf node_modules package-lock.json
+        - npm install --legacy-peer-deps
     build:
       commands:
         - echo "===> Building Astro site..."
