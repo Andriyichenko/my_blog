@@ -44,7 +44,7 @@ frontend:
     preBuild:
       commands:
         - echo "===> Installing frontend dependencies..."
-        - npm ci
+        - npm ci --legacy-peer-deps
     build:
       commands:
         - echo "===> Building Astro site..."
