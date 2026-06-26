@@ -7,32 +7,54 @@ import { getCollection } from 'astro:content';
 
 const posts = await getCollection('blog');
 
-const featuredSlugs = ['test', 'test2', 'itos-lemma'];
+import { getFeaturedPosts } from '../lib/supabase';
 
-const featuredPosts = featuredSlugs
-    .map(slug => posts.find(p => p.id === slug))
-    .filter(Boolean)
-    .map(post => ({
-        title: post.data.title,
-        description: post.data.description,
-        href: `/blog/${post.id}`,
-        image: `/slides/${post.id}.jpg`,
-        tag: post.data.subcategory || post.data.tags?.[0] || 'Article',
-        author: post.data.author || 'Alex', 
-    }));
+// 从 Supabase 获取轮播文章的 slug
+const supabaseFeaturedSlugs = await getFeaturedPosts();
+const supabaseSlugs = supabaseFeaturedSlugs.map((p: any) => p.slug);
+
+console.log('=== DEBUG INFO ===');
+console.log('Supabase slugs:', supabaseSlugs);
+console.log('Available posts:', posts.map(p => p.id));
+
+// 修复：使用小写比较找到正确的 post，然后用 Supabase 的 slug 生成链接
+const featuredPosts = supabaseSlugs
+    .map(slug => {
+        console.log('Processing slug from Supabase:', slug);
+        const post = posts.find(p => {
+            const idMatch = p.id.toLowerCase() === slug.toLowerCase();
+            console.log(`  Checking post.id="${p.id}" against slug="${slug}": ${idMatch}`);
+            return idMatch;
+        });
+        if (!post) {
+            console.log(`  ❌ No post found for slug: ${slug}`);
+            return null;
+        }
+        console.log(`  ✅ Found post: ${post.data.title}`);
+        const href = `/blog/${slug}`;
+        console.log(`  Generated href: ${href}`);
+        return {
+            title: post.data.title,
+            description: post.data.description,
+            href: href,
+            image: `/slides/${slug}.jpg`,
+            tag: post.data.subcategory || post.data.tags?.[0] || 'Article',
+            author: post.data.author || 'Alex',
+        };
+    })
+    .filter(Boolean);
+
+console.log('Final featuredPosts:', featuredPosts);
 
 const mathSubCategories = [
     { id: 'all', label: 'All' },
-    // { id: 'geometry', label: 'Geometry' },
     { id: 'probability', label: 'Probability' },
     { id: 'analysis', label: 'Analysis' },
-    // { id: 'stochastic differential equations', label: 'SDEs' },
     { id: 'machine learning', label: 'Machine Learning' },
 ];
 
 const physicsSubCategories = [
     { id: 'all', label: 'All' },
-    //{ id: 'physics', label: 'Physics' },
     { id: 'quantum mechanics', label: 'Quantum Mechanics' },
 ];
 
@@ -63,9 +85,6 @@ const allProjects = posts.map(post => {
     } else {
         category = 'cs';
     }
-
-    // debug
-    //console.log(post.id, '| sub:', post.data.subcategory, '| tags:', post.data.tags, '| category:', category);
 
     return {
         title: post.data.title,
@@ -139,41 +158,16 @@ const csProjects      = allProjects.filter(p => p.category === 'cs');
         </div>
 
         <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center px-4">
-            <!-- <a href="/blog" class="group relative inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl font-semibold shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+            <a href="/blog" class="group relative inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl font-semibold shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
                 <span class="absolute inset-0 bg-gradient-to-r from-purple-700 to-violet-700 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                 <span class="relative flex items-center gap-2">
                     <span id="btn-integral" style="display:inline-flex;align-items:center;line-height:1;"></span>
                     <span>Search Blogs</span>
-                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                     </svg>
                 </span>
-            </a> -->
-            <a href="/blog" class="group relative inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-2xl font-semibold shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
-            <span class="absolute inset-0 bg-gradient-to-r from-purple-700 to-violet-700 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-            <span class="relative flex items-center gap-2">
-                <span id="btn-integral" style="display:inline-flex;align-items:center;line-height:1;"></span>
-                <span>Search Blogs</span>
-                <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                </svg>
-            </span>
-        </a>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const el = document.getElementById('btn-integral');
-                if (el && window.katex) {
-                    katex.render('\\textstyle\\sum', el, {
-                        throwOnError: false,
-                        displayMode: false,
-                    });
-                    // 控制大小和颜色
-                    el.style.fontSize = '1.05rem';
-                    el.style.color = 'white';
-                    el.style.opacity = '0.75';
-                }
-            });
-        </script>
+            </a>
             <a href="/about" class="group inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 rounded-2xl font-semibold border-2 border-zinc-200 dark:border-zinc-700 hover:border-purple-300 dark:hover:border-purple-700 hover:text-purple-600 dark:hover:text-purple-400 shadow-sm hover:shadow-md transition-all duration-300">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -419,19 +413,16 @@ const csProjects      = allProjects.filter(p => p.category === 'cs');
                 const section = (btn as HTMLElement).dataset.section!;
                 const subcategory = (btn as HTMLElement).dataset.subcategory!;
 
-                // 重置同 section 所有按钮
                 document.querySelectorAll(`.sub-filter-btn[data-section="${section}"]`).forEach(b => {
                     b.classList.remove('bg-white', 'dark:bg-zinc-700', 'shadow-sm',
                         ...(colorMap[section] ?? []));
                     b.classList.add('text-zinc-600', 'dark:text-zinc-400');
                 });
 
-                // 激活当前按钮
                 btn.classList.remove('text-zinc-600', 'dark:text-zinc-400');
                 btn.classList.add('bg-white', 'dark:bg-zinc-700', 'shadow-sm',
                     ...(colorMap[section] ?? []));
 
-                // 过滤卡片
                 const gridId = gridMap[section];
                 if (!gridId) return;
                 document.querySelectorAll(`#${gridId} .project-card`).forEach(card => {
