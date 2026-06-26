@@ -22,9 +22,10 @@ export async function getFeaturedPosts() {
 
   try {
     const { data, error } = await supabase
-      .from('post_embeddings')
-      .select('slug, title, description')
-      .eq('featured', true);
+    .from('post_embeddings')
+    .select('slug, title, description, featured_order')
+    .eq('featured', true)
+    .order('featured_order', { ascending: true });
 
     if (error) throw error;
     
