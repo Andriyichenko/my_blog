@@ -1,0 +1,35 @@
+name: Scheduled ML Training & Retrain
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # 每天 UTC 18:00（北京时间次日凌晨 2:00）
+  workflow_dispatch:
+
+jobs:
+  train-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install ML dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run training script
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      run: python train.py
+    
+    - name: Trigger Amplify rebuild
+      run: |
+        echo "===> Training complete, triggering Amplify rebuild..."
+        curl -X POST "${{ secrets.AMPLIFY_WEBHOOK_URL }}"
+        echo "✅ Amplify rebuild triggered!"
