@@ -148,7 +148,7 @@ export const people = [
     nameEn: 'Martin MA',
     role: '広報部/Data Sci.',
     category: ['math'] as const,
-    avatar: '/authors/ma-xing-yu.jpg',
+    avatar: '/authors/martin-ma.jpg',
     email: 'maxingyu528491@gmail.com',
     
     shortBio: '広報部/Data Sci.',

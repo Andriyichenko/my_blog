@@ -9,7 +9,6 @@ const posts = await getCollection('blog');
 
 import { getFeaturedPosts } from '../lib/supabase';
 
-// 从 Supabase 获取轮播文章的 slug
 const supabaseFeaturedSlugs = await getFeaturedPosts();
 const supabaseSlugs = supabaseFeaturedSlugs.map((p: any) => p.slug);
 
@@ -17,7 +16,6 @@ console.log('=== DEBUG INFO ===');
 console.log('Supabase slugs:', supabaseSlugs);
 console.log('Available posts:', posts.map(p => p.id));
 
-// 修复：使用小写比较找到正确的 post，然后用 Supabase 的 slug 生成链接
 const featuredPosts = supabaseSlugs
     .map(slug => {
         console.log('Processing slug from Supabase:', slug);
@@ -35,6 +33,7 @@ const featuredPosts = supabaseSlugs
         console.log(`  Generated href: ${href}`);
         return {
             title: post.data.title,
+            mathTitle: post.data.mathTitle,
             description: post.data.description,
             href: href,
             image: `/slides/${slug}.jpg`,
@@ -88,6 +87,7 @@ const allProjects = posts.map(post => {
 
     return {
         title: post.data.title,
+        mathTitle: post.data.mathTitle,
         subtitle: post.data.subtitle,
         description: post.data.description,
         href: `/blog/${post.id}`,
@@ -130,7 +130,13 @@ const csProjects      = allProjects.filter(p => p.category === 'cs');
                                     <span class="inline-block px-2.5 py-0.5 text-xs font-semibold bg-purple-600 text-white rounded-full">
                                         {post.tag}
                                     </span>
-                                    <h2 class="text-lg md:text-xl font-extrabold text-gray-900 leading-snug line-clamp-2">{post.title}</h2>
+                                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 leading-snug line-clamp-2 slider-title">
+                                        {post.mathTitle ? (
+                                            <span set:html={post.mathTitle} class="inline-block"></span>
+                                        ) : (
+                                            post.title
+                                        )}
+                                    </h2>
                                     <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed">{post.description}</p>
                                     <div class="flex items-center gap-2 pt-0.5">
                                         <img
@@ -210,6 +216,7 @@ const csProjects      = allProjects.filter(p => p.category === 'cs');
                 <div data-category="math" data-subcategory={project.subcategory} class="project-card">
                     <Card 
                         title={project.title}
+                        mathTitle={project.mathTitle}
                         subtitle={project.subtitle}
                         description={project.description}
                         href={project.href}
@@ -258,6 +265,7 @@ const csProjects      = allProjects.filter(p => p.category === 'cs');
                 <div data-category="physics" data-subcategory={project.subcategory} class="project-card">
                     <Card 
                         title={project.title}
+                        mathTitle={project.mathTitle}
                         subtitle={project.subtitle}
                         description={project.description}
                         href={project.href}
@@ -308,6 +316,7 @@ const csProjects      = allProjects.filter(p => p.category === 'cs');
                 <div data-category="cs" data-subcategory={project.subcategory} class="project-card">
                     <Card 
                         title={project.title}
+                        mathTitle={project.mathTitle}
                         subtitle={project.subtitle}
                         description={project.description}
                         href={project.href}
@@ -436,4 +445,38 @@ const csProjects      = allProjects.filter(p => p.category === 'cs');
             });
         });
     });
+</script>
+
+<!-- MathJax 配置和加载 -->
+<script is:inline>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true
+    },
+    chtml: {
+      matchFontHeight: true,
+      scale: 1.2
+    }
+  };
+</script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+<!-- 主页卡片标题和轮播 LaTeX 渲染 -->
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (window.MathJax?.typesetPromise) {
+      try {
+        console.log('🔄 处理主页中的 LaTeX 公式...');
+        const titleElements = document.querySelectorAll('.card-title, .slider-title');
+        if (titleElements.length > 0) {
+          await MathJax.typesetPromise(Array.from(titleElements));
+          console.log('✅ 主页 LaTeX 渲染完成，处理了 ' + titleElements.length + ' 个元素');
+        }
+      } catch (error) {
+        console.error('❌ 主页 LaTeX 渲染失败:', error);
+      }
+    }
+  });
 </script>

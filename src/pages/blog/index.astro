@@ -38,7 +38,6 @@ const categories = [
 const authors = [...new Set(
     sortedPosts.map(post => post.data.author || 'Alex')
 )];
-// const tags = ["React", "Manim", "Python", "DataViz", "MachineLearning", "Stochastic"];
 const tags = [...new Set(
   sortedPosts.flatMap(post => post.data.tags || [])
 )].sort();
@@ -53,7 +52,6 @@ function getReadingTime(body: string) {
 const categoryColors = {
     'math': 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-300',
     'cs': 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-300',
-    //'soc': 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-300',
     'default': 'text-zinc-600 bg-zinc-50 dark:bg-zinc-800 dark:text-zinc-300'
 };
 ---
@@ -62,6 +60,22 @@ const categoryColors = {
 <head>
     <BaseHead title="立命館数理Blog" description="Exploring the intersection of Calculus, Code, and Society." />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- 🔥 MathJax 配置 -->
+    <script is:inline id="mathjax-config">
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            chtml: {
+                matchFontHeight: false,
+                scale: 1.0
+            }
+        };
+    </script>
+    <script is:inline src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 </head>
 <body class="bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 min-h-screen flex flex-col font-sans selection:bg-purple-200 selection:text-purple-900">
     <Header />
@@ -206,18 +220,6 @@ const categoryColors = {
                 </div>
             </div>
 
-            <!-- <div>
-                <h3 class="font-serif font-bold text-sm uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
-                    <span class="text-purple-500">#</span> Tags
-                </h3>
-                <div class="flex flex-wrap gap-2">
-                    {tags.map(tag => (
-                        <button data-type="tag" data-filter={tag} class="sidebar-btn px-3 py-1.5 text-xs rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-colors border border-zinc-200/50 dark:border-zinc-700/50">
-                            #{tag}
-                        </button>
-                    ))}
-                </div>
-            </div> -->
             <div>
                 <h3 class="font-serif font-bold text-sm uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
                     <span class="text-purple-500">#</span> Tags
@@ -238,7 +240,7 @@ const categoryColors = {
                         ))}
                     </div>
 
-                    {/* View all / 收起 按钮（只在 tags > 7 时显示） */}
+                    {/* View all / 收起 按钮 */}
                     {tags.length > 7 && (
                         <button
                             id="toggle-tags-btn"
@@ -319,8 +321,8 @@ const categoryColors = {
                                         </span>
                                     </div>
 
-                                    <h2 class="text-lg md:text-xl font-bold text-zinc-900 dark:text-white leading-tight line-clamp-1 group-hover:text-purple-600 transition-colors">
-                                        {post.data.title}
+                                    <h2 class="text-lg md:text-xl font-bold text-zinc-900 dark:text-white leading-tight line-clamp-1 group-hover:text-purple-600 transition-colors post-title">
+                                        {post.data.mathTitle ? <span set:html={post.data.mathTitle} /> : post.data.title}
                                     </h2>
 
                                     {post.data.subtitle && (
@@ -509,8 +511,7 @@ const categoryColors = {
                 document.querySelectorAll('.toggle-arrow').forEach(a => a.classList.remove('rotate-180'));
             }
 
-            // ===== 大分类按钮：展开/收起子菜单 + 触发大分类过滤 =====
-            // 桌面端 dropdown
+            // 大分类按钮：展开/收起子菜单 + 触发大分类过滤
             document.querySelectorAll<HTMLElement>('.dropdown-parent-btn').forEach(btn => {
                 const wrapper = btn.closest('.dropdown-wrapper');
                 const subMenu = wrapper?.querySelector('.sub-menu');
@@ -524,7 +525,6 @@ const categoryColors = {
                         subMenu.classList.remove('hidden');
                         arrow?.classList.add('rotate-180');
                     }
-                    // 触发大分类过滤
                     const filter = btn.dataset.filter;
                     if (filter) {
                         activeFilters.topics.clear();
@@ -549,7 +549,6 @@ const categoryColors = {
                         subMenu.classList.remove('hidden');
                         arrow?.classList.add('rotate-180');
                     }
-                    // 触发大分类过滤（不关闭侧边栏）
                     const filter = btn.dataset.filter;
                     if (filter) {
                         activeFilters.topics.clear();
@@ -560,7 +559,7 @@ const categoryColors = {
                 });
             });
 
-            // ===== 子分类按钮：过滤 + 关闭侧边栏/下拉 =====
+            // 子分类按钮：过滤 + 关闭侧边栏/下拉
             document.querySelectorAll<HTMLElement>('.sub-item-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -575,9 +574,8 @@ const categoryColors = {
                 });
             });
 
-            // ===== 其他 sidebar-btn（All Posts、Authors、Tags）=====
+            // 其他 sidebar-btn
             sidebarBtns.forEach(btn => {
-                // 跳过已单独处理的按钮
                 if (btn.classList.contains('dropdown-parent-btn') ||
                     btn.classList.contains('sidebar-parent-btn') ||
                     btn.classList.contains('sub-item-btn')) return;
@@ -591,7 +589,6 @@ const categoryColors = {
                         if (activeFilters.authors.has(filter)) activeFilters.authors.delete(filter);
                         else activeFilters.authors.add(filter);
                     } else if (type === 'topic') {
-                        // All Posts 按钮
                         activeFilters.topics.clear();
                         toggleSidebar(false);
                     } else if (type === 'tag') {
@@ -655,6 +652,7 @@ const categoryColors = {
                 filterArticles();
             });
         });
+
         // Tags 展开/收起
         const toggleTagsBtn = document.getElementById('toggle-tags-btn');
         const extraTags = document.getElementById('extra-tags');
@@ -674,6 +672,57 @@ const categoryColors = {
                     : 0;
                 if (toggleTagsBtn) toggleTagsBtn.textContent = `View all tags (${remaining} more)`;
             }
+        });
+    </script>
+
+    <script is:inline>
+        // 等待 MathJax 加载完成
+        window.MathJaxLoadPromise = new Promise(resolve => {
+            if (window.MathJax?.ready) {
+                window.MathJax.ready.then(resolve);
+            } else {
+                window.addEventListener('MathJaxReady', resolve, { once: true });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await window.MathJaxLoadPromise;
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                try {
+                    console.log('🔄 处理博客列表中的 LaTeX...');
+                    
+                    // 获取所有包含公式的元素
+                    const titleElements = document.querySelectorAll('.post-title');
+                    console.log('找到 ' + titleElements.length + ' 个标题元素');
+                    
+                    if (titleElements.length > 0) {
+                        await MathJax.typesetPromise(Array.from(titleElements));
+                        console.log('✅ LaTeX 渲染完成');
+                    }
+                } catch (error) {
+                    console.error('❌ LaTeX 渲染失败:', error);
+                }
+            }
+        });
+
+        // 监听动态添加的内容（如果你后续动态加载卡片）
+        const observer = new MutationObserver(async (mutations) => {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                const newTitles = document.querySelectorAll('.post-title:not([data-mathjax-processed])');
+                if (newTitles.length > 0) {
+                    try {
+                        await MathJax.typesetPromise(Array.from(newTitles));
+                        newTitles.forEach(el => el.setAttribute('data-mathjax-processed', 'true'));
+                    } catch (e) {
+                        console.error('动态渲染失败:', e);
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            observer.observe(document.body, { childList: true, subtree: true });
         });
     </script>
 </body>

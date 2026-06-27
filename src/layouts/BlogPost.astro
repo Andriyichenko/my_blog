@@ -11,6 +11,7 @@ const {
     id,
     title,
     subtitle,
+    mathTitle,
     description,
     pubDate,
     updatedDate,
@@ -75,6 +76,22 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 ---
 
 <Layout title={title} description={description}>
+    <!-- MathJax CDN 脚本 - 放在最前面 -->
+    <script is:inline id="mathjax-config">
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            chtml: {
+                matchFontHeight: false,
+                scale: 1.0
+            }
+        };
+    </script>
+    <script is:inline src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
     <div class="sticky top-0 z-40 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-zinc-200/60 dark:border-zinc-800/60">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-start py-2">
@@ -97,8 +114,9 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                 </div>
             )}
 
-            <h1 class="text-4xl md:text-5xl font-serif font-bold text-zinc-900 dark:text-white mb-4 leading-tight">
-                {title}
+            <!-- 关键：添加 id="post-title" 以便稍后 MathJax 处理 -->
+            <h1 id="post-title" class="text-4xl md:text-5xl font-serif font-bold text-zinc-900 dark:text-white mb-4 leading-tight">
+                {mathTitle ? <span set:html={mathTitle} /> : title}
             </h1>
 
             {subtitle && (
@@ -267,6 +285,17 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 <script define:vars={{ id, supabaseUrl, supabaseAnonKey }}>
     document.addEventListener('DOMContentLoaded', async () => {
+        // 🔥 关键：在标题渲染后立即调用 MathJax 处理标题
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            try {
+                console.log('🔄 处理标题中的 LaTeX...');
+                await MathJax.typesetPromise([document.getElementById('post-title')]);
+                console.log('✅ 标题 LaTeX 渲染完成');
+            } catch (error) {
+                console.error('❌ 标题 LaTeX 渲染失败:', error);
+            }
+        }
+
         const slug = id || window.location.pathname.split('/blog/')[1]?.replace(/\/$/, '');
         
         console.log('📄 页面初始化 - Article slug:', slug);
@@ -284,20 +313,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             });
         }
 
-        // ===== 获取用户标识 =====
-        // let userIdentifier = null;
-        
-        // try {
-        //     const res = await fetch('/api/get-user-ip');
-        //     if (res.ok) {
-        //         const data = await res.json();
-        //         userIdentifier = data.ip;
-        //         console.log('✅ 用户IP:', userIdentifier);
-        //     }
-        // } catch (error) {
-        //     console.warn('⚠️ 无法获取IP，使用备用指纹:', error);
-        //     userIdentifier = generateDeviceFingerprint();
-        // }
         // ===== 获取用户标识 =====
         let userIdentifier = null;
 
@@ -408,7 +423,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                 if (isLiked) {
                     btn.classList.add(...likedClasses);
                     btn.setAttribute('aria-pressed', 'true');
-                    btn.disabled = false;  // 保持启用，允许取消
+                    btn.disabled = false;
                 } else {
                     btn.classList.remove(...likedClasses);
                     btn.setAttribute('aria-pressed', 'false');
@@ -499,7 +514,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                 return;
             }
 
-            // 如果已赞，则取消赞；否则点赞
             if (isLiked) {
                 await handleUnlike();
             } else {
@@ -597,7 +611,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                 likeCount = Math.max(0, likeCount - 1);
                 updateLikeUI();
 
-                // 更新 post_stats 中的 like_count
                 try {
                     await fetch(
                         `${supabaseUrl}/rest/v1/rpc/decrement_like`,
@@ -693,7 +706,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
         // 初始化点赞
         await initLike();
 
-        // ===== 【方案 B】AI 推荐系统 - 直接查询数据库存储的推荐 =====
+        // ===== 【方案 B】AI 推荐系统 =====
         async function initAIRecommendations() {
             console.log('🤖 【方案B】初始化 AI 推荐系统...');
             
@@ -703,9 +716,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             }
 
             try {
-                // 1️⃣ 获取当前文章存储的推荐列表
-                console.log(`[方案B] 正在查询文章 "${slug}" 的推荐列表...`);
-                
                 const { data: postData, error: postError } = await fetch(
                     `${supabaseUrl}/rest/v1/post_embeddings?slug=eq.${encodeURIComponent(slug)}&select=recommendations`,
                     {
@@ -730,12 +740,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                     return;
                 }
 
-                // 2️⃣ 批量查询推荐文章的详细信息
-                console.log('[方案B] 正在获取推荐文章的详细信息...');
-                
-                // 构建 PostgreSQL 的 IN 查询
-                const slugList = recommendationSlugs.map(s => `"${s}"`).join(',');
-                
                 const { data: recommendedPosts, error: recError } = await fetch(
                     `${supabaseUrl}/rest/v1/post_embeddings?slug=in.(${encodeURIComponent(recommendationSlugs.join(','))})`
                         + `&select=slug,title,description,embedding`,
@@ -755,7 +759,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
                 console.log('✅ 获取到推荐文章数:', recommendedPosts.length);
 
-                // 3️⃣ 计算相似度（用于显示）
                 const currentEmbedding = postData[0].embedding ? parseEmbedding(postData[0].embedding) : null;
                 
              const recommendationsWithSimilarity = recommendedPosts
@@ -774,7 +777,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                     console.log(`  - ${r.slug}: 相似度 ${r.similarity.toFixed(3)}`);
                 });
 
-                // 4️⃣ 渲染推荐卡片
                 renderRecommendations(recommendationsWithSimilarity);
 
             } catch (error) {
@@ -782,7 +784,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             }
         }
 
-        // 解析 embedding 数据
         function parseEmbedding(embedding) {
             try {
                 if (!embedding) return null;
@@ -810,7 +811,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             }
         }
 
-        // 余弦相似度计算
         function cosineSimilarity(vecA, vecB) {
             if (!vecA || !vecB || vecA.length !== vecB.length) {
                 return 0;
@@ -836,7 +836,6 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             return dotProduct / (magnitudeA * magnitudeB);
         }
 
-        // 渲染推荐卡片
         function renderRecommendations(recommendations) {
             const container = document.getElementById('ai-recommendations');
             const section = document.getElementById('ai-rec-section');
@@ -887,11 +886,9 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             console.log('✅ 推荐卡片渲染完成');
         }
 
-        // 初始化推荐系统
         await initAIRecommendations();
     });
 
-    // ===== 设备指纹函数 =====
     function generateDeviceFingerprint() {
         const ua = navigator.userAgent;
         const screen = `${window.screen.width}x${window.screen.height}`;
