@@ -114,7 +114,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
                 </div>
             )}
 
-            <!-- 关键：添加 id="post-title" 以便稍后 MathJax 处理 -->
+            <!-- 标题：使用 MathJax 渲染 LaTeX -->
             <h1 id="post-title" class="text-4xl md:text-5xl font-serif font-bold text-zinc-900 dark:text-white mb-4 leading-tight">
                 {mathTitle ? <span set:html={mathTitle} /> : title}
             </h1>
@@ -285,16 +285,41 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 <script define:vars={{ id, supabaseUrl, supabaseAnonKey }}>
     document.addEventListener('DOMContentLoaded', async () => {
-        // 🔥 关键：在标题渲染后立即调用 MathJax 处理标题
-        if (window.MathJax && window.MathJax.typesetPromise) {
+        // 🔥 关键：等待 MathJax 初始化完成，然后处理标题和内容
+        async function renderMathJax() {
+            if (!window.MathJax || !window.MathJax.typesetPromise) {
+                console.warn('⚠️ MathJax 未加载');
+                return;
+            }
+
             try {
-                console.log('🔄 处理标题中的 LaTeX...');
-                await MathJax.typesetPromise([document.getElementById('post-title')]);
-                console.log('✅ 标题 LaTeX 渲染完成');
+                console.log('🔄 开始处理 LaTeX...');
+                
+                // 处理标题和内容
+                await window.MathJax.typesetPromise([
+                    document.getElementById('post-title'),
+                    document.getElementById('post-content-area')
+                ]);
+                
+                console.log('✅ LaTeX 渲染完成');
             } catch (error) {
-                console.error('❌ 标题 LaTeX 渲染失败:', error);
+                console.error('❌ LaTeX 渲染失败:', error);
             }
         }
+
+        // 等待 MathJax 加载（最多等待 5 秒）
+        let attempts = 0;
+        const maxAttempts = 50;
+        const checkInterval = setInterval(() => {
+            attempts++;
+            if (window.MathJax?.typesetPromise) {
+                clearInterval(checkInterval);
+                renderMathJax();
+            } else if (attempts >= maxAttempts) {
+                console.error('❌ 超时：MathJax 未在预期时间内加载');
+                clearInterval(checkInterval);
+            }
+        }, 100);
 
         const slug = id || window.location.pathname.split('/blog/')[1]?.replace(/\/$/, '');
         
@@ -706,84 +731,7 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
         // 初始化点赞
         await initLike();
 
-        // ===== 【方案 B】AI 推荐系统 =====
-        async function initAIRecommendations() {
-            console.log('🤖 【方案B】初始化 AI 推荐系统...');
-            
-            if (!slug || !supabaseUrl || !supabaseAnonKey) {
-                console.warn('❌ 缺少必要参数，跳过推荐');
-                return;
-            }
-
-            try {
-                const { data: postData, error: postError } = await fetch(
-                    `${supabaseUrl}/rest/v1/post_embeddings?slug=eq.${encodeURIComponent(slug)}&select=recommendations`,
-                    {
-                        headers: {
-                            'apikey': supabaseAnonKey,
-                            'Authorization': `Bearer ${supabaseAnonKey}`,
-                        },
-                    }
-                ).then(r => r.json()).then(data => ({ data, error: null }))
-                .catch(err => ({ data: null, error: err }));
-
-                if (postError || !postData || postData.length === 0) {
-                    console.warn('⚠️ 未找到当前文章的推荐数据');
-                    return;
-                }
-
-                const recommendationSlugs = postData[0].recommendations;
-                console.log('✅ 获取到推荐列表:', recommendationSlugs);
-
-                if (!recommendationSlugs || recommendationSlugs.length === 0) {
-                    console.warn('⚠️ 推荐列表为空');
-                    return;
-                }
-
-                const { data: recommendedPosts, error: recError } = await fetch(
-                    `${supabaseUrl}/rest/v1/post_embeddings?slug=in.(${encodeURIComponent(recommendationSlugs.join(','))})`
-                        + `&select=slug,title,description,embedding`,
-                    {
-                        headers: {
-                            'apikey': supabaseAnonKey,
-                            'Authorization': `Bearer ${supabaseAnonKey}`,
-                        },
-                    }
-                ).then(r => r.json()).then(data => ({ data, error: null }))
-                .catch(err => ({ data: null, error: err }));
-
-                if (recError || !recommendedPosts) {
-                    console.error('❌ 获取推荐文章详情失败:', recError);
-                    return;
-                }
-
-                console.log('✅ 获取到推荐文章数:', recommendedPosts.length);
-
-                const currentEmbedding = postData[0].embedding ? parseEmbedding(postData[0].embedding) : null;
-                
-             const recommendationsWithSimilarity = recommendedPosts
-                .slice(0, 3)  
-                .map(post => ({
-                    slug: post.slug,
-                    title: post.title || '未命名',
-                    description: post.description || '暂无描述',
-                    similarity: currentEmbedding && post.embedding 
-                        ? cosineSimilarity(currentEmbedding, parseEmbedding(post.embedding))
-                        : 0.85
-                }));
-
-                console.log('✅ 推荐文章处理完毕:', recommendationsWithSimilarity.length);
-                recommendationsWithSimilarity.forEach(r => {
-                    console.log(`  - ${r.slug}: 相似度 ${r.similarity.toFixed(3)}`);
-                });
-
-                renderRecommendations(recommendationsWithSimilarity);
-
-            } catch (error) {
-                console.error('❌ AI 推荐初始化失败:', error);
-            }
-        }
-
+        // ===== AI 推荐系统 =====
         function parseEmbedding(embedding) {
             try {
                 if (!embedding) return null;
@@ -836,54 +784,160 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
             return dotProduct / (magnitudeA * magnitudeB);
         }
 
-        function renderRecommendations(recommendations) {
-            const container = document.getElementById('ai-recommendations');
-            const section = document.getElementById('ai-rec-section');
-            
-            if (!container) return;
+        // 🔥 核心修正：renderRecommendations 只定义一次
+// 🔥 核心修正：renderRecommendations 添加 MathJax 友好的标记
+function renderRecommendations(recommendations) {
+    const container = document.getElementById('ai-recommendations');
+    const section = document.getElementById('ai-rec-section');
+    
+    if (!container) return;
 
-            if (recommendations.length === 0) {
-                if (section) section.classList.add('hidden');
+    if (recommendations.length === 0) {
+        if (section) section.classList.add('hidden');
+        return;
+    }
+
+    // 生成 HTML - 为包含 LaTeX 的标题添加特殊 class
+    container.innerHTML = recommendations
+        .map(post => `
+            <a href="/blog/${post.slug}/" class="group block">
+                <div class="p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg transition-all duration-300 bg-white dark:bg-zinc-900/50">
+                    <div class="flex items-start justify-between gap-4 mb-4">
+                        <h3 class="text-lg font-bold text-zinc-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors flex-grow rec-title">
+                            ${post.title}
+                        </h3>
+                        <span class="shrink-0 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold rounded-full whitespace-nowrap">
+                            ${(post.similarity * 100).toFixed(0)}% マッチ
+                        </span>
+                    </div>
+
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-4">
+                        ${post.description}
+                    </p>
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs text-zinc-500">おすすめ指数</span>
+                            <div class="flex gap-1">
+                                ${Array(5).fill(0).map((_, i) => `
+                                    <div class="w-1.5 h-1.5 rounded-full ${i < Math.ceil(post.similarity * 5) ? 'bg-purple-500' : 'bg-zinc-300 dark:bg-zinc-600'}"></div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <svg class="w-5 h-5 text-zinc-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-all transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+        `)
+        .join('');
+
+    if (section) section.classList.remove('hidden');
+    console.log('✅ 推荐卡片渲染完成');
+
+    // 🔥 关键修正：等待 DOM 更新，然后处理 MathJax
+    // 使用 requestAnimationFrame 确保 DOM 已完全渲染
+    requestAnimationFrame(() => {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            console.log('🔄 开始处理推荐卡片中的 LaTeX...');
+            
+            // 获取所有需要处理的标题元素
+            const titleElements = container.querySelectorAll('.rec-title');
+            console.log('📍 找到推荐标题数:', titleElements.length);
+            
+            window.MathJax.typesetPromise(Array.from(titleElements)).then(() => {
+                console.log('✅ 推荐卡片 LaTeX 渲染完成');
+            }).catch(err => {
+                console.error('❌ 推荐卡片 LaTeX 渲染失败:', err);
+            });
+        } else {
+            console.warn('⚠️ MathJax 未加载，推荐卡片 LaTeX 无法渲染');
+        }
+    });
+}
+
+        async function initAIRecommendations() {
+            console.log('🤖 初始化 AI 推荐系统...');
+            
+            if (!slug || !supabaseUrl || !supabaseAnonKey) {
+                console.warn('❌ 缺少必要参数，跳过推荐');
                 return;
             }
 
-            container.innerHTML = recommendations
-                .map(post => `
-                    <a href="/blog/${post.slug}/" class="group block">
-                        <div class="p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-lg transition-all duration-300 bg-white dark:bg-zinc-900/50">
-                            <div class="flex items-start justify-between gap-4 mb-4">
-                                <h3 class="text-lg font-bold text-zinc-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors flex-grow">
-                                    ${post.title}
-                                </h3>
-                                <span class="shrink-0 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold rounded-full whitespace-nowrap">
-                                    ${(post.similarity * 100).toFixed(0)}% マッチ
-                                </span>
-                            </div>
+            try {
+                const postDataRes = await fetch(
+                    `${supabaseUrl}/rest/v1/post_embeddings?slug=eq.${encodeURIComponent(slug)}&select=recommendations`,
+                    {
+                        headers: {
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
+                        },
+                    }
+                );
 
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-4">
-                                ${post.description}
-                            </p>
+                if (!postDataRes.ok) {
+                    console.warn('⚠️ 未找到当前文章的推荐数据');
+                    return;
+                }
 
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xs text-zinc-500">おすすめ指数</span>
-                                    <div class="flex gap-1">
-                                        ${Array(5).fill(0).map((_, i) => `
-                                            <div class="w-1.5 h-1.5 rounded-full ${i < Math.ceil(post.similarity * 5) ? 'bg-purple-500' : 'bg-zinc-300 dark:bg-zinc-600'}"></div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                                <svg class="w-5 h-5 text-zinc-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-all transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </div>
-                        </div>
-                    </a>
-                `)
-                .join('');
+                const postData = await postDataRes.json();
+                
+                if (!postData || postData.length === 0) {
+                    console.warn('⚠️ 未找到当前文章的推荐数据');
+                    return;
+                }
 
-            if (section) section.classList.remove('hidden');
-            console.log('✅ 推荐卡片渲染完成');
+                const recommendationSlugs = postData[0].recommendations;
+                console.log('✅ 获取到推荐列表:', recommendationSlugs);
+
+                if (!recommendationSlugs || recommendationSlugs.length === 0) {
+                    console.warn('⚠️ 推荐列表为空');
+                    return;
+                }
+
+                const recRes = await fetch(
+                    `${supabaseUrl}/rest/v1/post_embeddings?slug=in.(${encodeURIComponent(recommendationSlugs.join(','))})`
+                        + `&select=slug,title,description,embedding`,
+                    {
+                        headers: {
+                            'apikey': supabaseAnonKey,
+                            'Authorization': `Bearer ${supabaseAnonKey}`,
+                        },
+                    }
+                );
+
+                if (!recRes.ok) {
+                    console.error('❌ 获取推荐文章详情失败:', recRes.status);
+                    return;
+                }
+
+                const recommendedPosts = await recRes.json();
+                console.log('✅ 获取到推荐文章数:', recommendedPosts.length);
+
+                const currentEmbedding = postData[0].embedding ? parseEmbedding(postData[0].embedding) : null;
+                
+                const recommendationsWithSimilarity = recommendedPosts
+                    .slice(0, 3)  
+                    .map(post => ({
+                        slug: post.slug,
+                        title: post.title || '未命名',
+                        description: post.description || '暂无描述',
+                        similarity: currentEmbedding && post.embedding 
+                            ? cosineSimilarity(currentEmbedding, parseEmbedding(post.embedding))
+                            : 0.85
+                    }));
+
+                console.log('✅ 推荐文章处理完毕:', recommendationsWithSimilarity.length);
+                recommendationsWithSimilarity.forEach(r => {
+                    console.log(`  - ${r.slug}: 相似度 ${r.similarity.toFixed(3)}`);
+                });
+
+                renderRecommendations(recommendationsWithSimilarity);
+
+            } catch (error) {
+                console.error('❌ AI 推荐初始化失败:', error);
+            }
         }
 
         await initAIRecommendations();

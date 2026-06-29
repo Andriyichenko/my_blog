@@ -5,9 +5,9 @@ import re
 import numpy as np
 from supabase import create_client, Client
 from sentence_transformers import SentenceTransformer
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 
 def parse_markdown_frontmatter(file_path):
