@@ -235,7 +235,7 @@ const authorSlug = author.toLowerCase().replace(/ /g, '-');
 
   // 监听动态内容（如推荐卡片）的插入
   const observer = new MutationObserver(() => {
-    const unrenderedNodes = document.querySelectorAll('.katex-latex[data-rendered!="1"]');
+    const unrenderedNodes = document.querySelectorAll('.katex-latex:not([data-rendered="1"])');
     if (unrenderedNodes.length > 0) {
       console.log('[Card] 检测到新的 LaTeX 节点，重新渲染');
       setTimeout(renderLatexNodes, 100);
