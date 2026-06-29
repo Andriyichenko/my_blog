@@ -98,13 +98,22 @@ export default function CircularPeopleSelector({ people, initialSlug }) {
         </div>
 
         <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-          {people.map((_, i) => (
-            <div key={i} style={{
-              width: i === currentIndex ? 18 : 6, height: 6, borderRadius: 3,
-              background: i === currentIndex ? '#6c63ff' : '#ddd',
-              transition: 'all 0.3s ease',
-            }} />
-          ))}
+          {[0, 1, 2].map((slot) => {
+            const idx = (currentIndex + slot - 1 + people.length) % people.length; // 中间是当前
+            const isActive = slot === 1; // slot=1 对应当前选中点
+            return (
+              <div
+                key={idx}
+                style={{
+                  width: isActive ? 18 : 6,
+                  height: 6,
+                  borderRadius: 3,
+                  background: isActive ? '#6c63ff' : '#ddd',
+                  transition: 'all 0.3s ease',
+                }}
+              />
+            );
+          })}
         </div>
       </div>
 
