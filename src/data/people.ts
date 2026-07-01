@@ -66,7 +66,7 @@ export const people = [
     nameEn: 'Evan HOU',
     role: '数理最適化',
     category: ['math'] as const,
-    avatar: '/authors/hou-yu-meng.jpg',
+    avatar: '/authors/evan-hou.jpg',
     email: 'hym030509@gmail.com',
     github: 'https://github.com/hym030509-hash',
     shortBio: '数理最適化/凸最適化',

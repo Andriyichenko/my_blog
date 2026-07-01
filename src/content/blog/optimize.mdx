@@ -1,0 +1,256 @@
+---
+title: "数理最適化の理論と応用"
+description: "与えられた制約条件のもとで目的関数を最適化する数理最適化問題の体系的な解説。線形最適化から非線形最適化、多様体上の最適化まで、実務から学術まで幅広い応用を網羅する。"
+pubDate: "2026-06-24"
+subcategory: "Optimization"
+tags: ["最適化", "線形計画法", "凸最適化"]
+author: "Evan HOU"
+---
+
+## 引言
+
+ビジネスの世界では毎日、最適化の問題が起きています。工場の生産台数をいかに配分するか、配送車をどのルートで走らせるか、投資ポートフォリオをどう組成するか——これらはすべて、**与えられた制約のもとで目的を最大（最小）にする解を求める問題**です。これが**数理最適化 (mathematical optimization)** です。
+
+数理最適化は微積分が「確定的な変化」を研究するのに対して、「制約と目的の葛藤」をいかに調和させるかを研究します。その理論的な言語は非常に統一的で、線形計画法から機械学習の損失関数最小化まで、本質的には同じ枠組みで理解できます。
+
+この記事では、最適化問題の**分類体系**を整理し、**大域最適解と局所最適解**の区別、そして実用的な**各種問題クラス**（線形、二次、非線形、凸最適化）を、具体例とともに解説していきます。
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 全文主線</h3>
+  <div className="text-amber-900">
+    <strong>最適化問題の基本形</strong>：$\min_{x \in S} f(x)$ という簡潔な式に、すべての最適化が収束する。<br/>
+    <strong>問題の分類</strong>：連続 vs. 離散、制約なし vs. 制約あり、線形 vs. 非線形。<br/>
+    <strong>解の性質</strong>：大域最適解はどこにあるのか。凸性はいかに問題を簡単にするのか。
+  </div>
+</div>
+
+## 1. 数理最適化問題の基本形
+
+最適化問題の出発点は、**決定変数 (decision variable)** $x$ です。通常、$x$ は $n$ 次元ベクトル $x \in \mathbb{R}^n$ で、例えば各工場の生産量、各営業拠点の配置数、ポートフォリオの銘柄配分といった現実の量を表します。
+
+一方、$x$ が満たすべき条件の集合を $S \subset \mathbb{R}^n$ とします（例えば「生産量は非負」「資源は限定」といった制約）。すると、**最適化問題の標準形**は非常にシンプルです：
+
+<div className="p-4 border-2 border-gray-300 rounded-lg text-center my-6 bg-blue-50">
+    $$
+    \begin{align}
+    \text{minimize} \quad & f(x) \\
+    \text{subject to} \quad & x \in S
+    \end{align}
+    $$
+
+    または簡潔に、$\min_{x \in S} f(x)$
+</div>
+
+ここで：
+- $f(x)$ は**目的関数 (objective function)**：最小化（もしくは最大化）したい量
+- $S$ は**実行可能領域 (feasible region)**：すべての制約を満たす $x$ の集合
+
+目的関数の最大化は、$-f(x)$ の最小化に変換できるため、常に最小化問題として統一できます。
+
+<div className="text-sm text-gray-500">
+  実際には最適化ソルバーは、きわめて効率的なアルゴリズムで、フォーチュン500企業の配送計画から深層学習の学習まで、この「シンプルな形」を何度も何度も解いています。
+</div>
+
+## 2. 大域最適解と局所最適解
+
+$x^* \in S$ が**大域的最適解 (global optimum)** であるとは、実行可能領域内のすべての点において目的関数の値が $x^*$ より大きい（もしくは等しい）ことを意味します：
+
+$$
+f(x^*) \le f(x), \quad \forall x \in S
+$$
+
+これは「世界最高」という意味です。しかし、現実には「局所最高」にしか到達できないことがほとんどです。
+
+点 $x^*$ の**近傍（ボール）** を $B(x^*) = \{ x \in S \mid |x - x^*| \le \varepsilon \}$ と定義すれば、$x^*$ が**局所的最適解 (local optimum)** であるのは：
+
+$$
+f(x^*) \le f(x), \quad \forall x \in B(x^*)
+$$
+
+つまり「周辺では一番良い」という意味です。
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 実務的な課題</h3>
+  <div className="text-amber-900">
+    一般的な非線形問題では、勾配法などの局所探索アルゴリズムは局所最適解に陥ることが避けられません。しかし、「<strong>凸最適化</strong>」という特別なクラスでは、すべての局所最適解が大域最適解になる——この対称性が凸最適化を特別に価値あるものにしています。
+  </div>
+</div>
+
+## 3. 問題の分類：次元と構造
+
+最適化問題は、問題の構造や制約の形態に応じていくつかのクラスに分けられます。
+
+### 3.1 連続最適化 vs. 離散最適化
+
+**連続最適化 (continuous optimization)**：決定変数が実数値を連続的にとる。
+$$\min_{x \in \mathbb{R}^n} f(x)$$
+
+**離散最適化 (discrete optimization)**：決定変数が整数値のみをとる。例えば、行列 $A$ とベクトル $b$ に対して：
+$$S = \{ x \mid Ax \le b, \ x \text{ は整数ベクトル} \}$$
+
+離散最適化は計算的に一般に困難です（NP 困難な問題が多い）。対照的に、連続凸最適化は「多項式時間で解ける」という理論的保証があります。
+
+### 3.2 無制約最適化 vs. 制約付き最適化
+
+**無制約最適化 (unconstrained optimization)**：
+$$\min_{x \in \mathbb{R}^n} f(x)$$
+
+制約がないため、アルゴリズムは単純です（勾配法、ニュートン法など）。しかし現実はめったに制約がありません。
+
+**制約付き最適化 (constrained optimization)**：一般形は
+$$
+\begin{align}
+\text{minimize} \quad & f(x) \\
+\text{subject to} \quad & g_i(x) \le 0, \quad i = 1,\ldots,m \\
+& h_j(x) = 0, \quad j = 1,\ldots,l
+\end{align}
+$$
+
+ここで $g_i$ は**不等式制約 (inequality constraint)**、$h_j$ は**等式制約 (equality constraint)** です。
+
+## 4. 線形最適化：凸性を備えた特別な幸運
+
+**線形最適化 (linear programming, LP)** とは、目的関数と制約がすべて線形である問題です：
+
+$$
+\begin{align}
+\text{minimize} \quad & c^T x \\
+\text{subject to} \quad & A_1 x \le b_1 \\
+& A_2 x = b_2
+\end{align}
+$$
+
+ここで $c$ はコスト係数ベクトル、$A_1, A_2$ は制約行列です。
+
+線形計画法には二つの大きな利点があります：
+
+1. **凸性**：実行可能領域は凸多面体となり、すべての局所最適解が大域最適解である。
+2. **計算効率**：シンプレックス法や内点法など、非常に効率的なアルゴリズムが存在し、数百万変数の問題すら実務的に解ける。
+
+<div className="text-sm text-gray-500">
+  線形計画法は 1940 年代に Dantzig によって開発され、それ以来、金融・製造・物流などあらゆる業界の意思決定を支えてきた、最も成熟した最適化技術です。
+</div>
+
+## 5. 二次最適化と凸最適化
+
+### 5.1 二次最適化問題
+
+目的関数が二次関数で、制約が線形である場合：
+
+$$
+\begin{align}
+\text{minimize} \quad & \frac{1}{2}x^T Qx + c^T x \\
+\text{subject to} \quad & A_1 x \le b_1 \\
+& A_2 x = b_2
+\end{align}
+$$
+
+$Q$ が**正半定値 (positive semidefinite)** すなわち $Q \succeq 0$ であれば、この問題は凸であり、効率的に解けます。機械学習ではサポートベクトルマシン (SVM) の学習がこの形式です。
+
+### 5.2 凸最適化の理論
+
+**凸集合 (convex set)**：任意の二点とその間の線分が集合に含まれる。
+$$\lambda x + (1-\lambda)y \in S, \quad \forall x, y \in S, \ \lambda \in [0,1]$$
+
+**凸関数 (convex function)**：グラフが下に凸である。
+$$f\bigl(\lambda x + (1-\lambda)y\bigr) \le \lambda f(x) + (1-\lambda)f(y)$$
+
+凸最適化問題 $\min_{x \in S} f(x)$ で $S$ が凸、$f$ が凸関数であれば：
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">KEY FACT</div>
+  <p className="mt-0">
+    <strong>すべての局所最適解は大域最適解である</strong>——これは凸最適化の「黄金律」です。この対称性があるからこそ、勾配法などのシンプルなアルゴリズムでも大域最適解に到達できるという保証が得られます。
+  </p>
+</div>
+
+## 6. 非線形最適化問題
+
+凸性の仮定が外れたら、問題は急に難しくなります。
+
+**非線形最適化 (nonlinear programming)** は以下の一般形：
+
+$$
+\begin{align}
+\text{minimize} \quad & f(x) \\
+\text{subject to} \quad & g(x) \le 0,\ h(x) = 0
+\end{align}
+$$
+
+ここで $f, g, h$ が非線形であっても、凸性がなくてもかまいません。
+
+非線形問題に対しては、アルゴリズムは**局所探索**に頼ります。勾配降下法、準ニュートン法 (BFGS など)、信頼領域法など、各種のアルゴリズムが異なる仮定のもとで局所最適性を保証しますが、大域最適解への到達は保証されません。
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 ヒューリスティクスの活躍</h3>
+  <div className="text-amber-900">
+    非線形非凸問題では、遺伝的アルゴリズム、粒子群最適化 (PSO)、シミュレーテッド・アニーリングといった「準最適解」を探すメタヒューリスティクスが活躍します。最適性は保証されませんが、「十分に良い解」をリーズナブルな計算量で見つけることができます。
+  </div>
+</div>
+
+## 7. 半正定値最適化問題
+
+対称行列 $X$ に対して $X \succeq 0$（半正定値）という制約を加えると、新しいクラスの問題が開きます。
+
+典型的な**半正定値最適化問題 (semidefinite programming, SDP)** は：
+
+$$
+\begin{align}
+\text{minimize} \quad & C \bullet X \\
+\text{subject to} \quad & A_i \bullet X = b_i, \quad i = 1,\ldots,m \\
+& X \succeq 0
+\end{align}
+$$
+
+ここで $C \bullet X = \mathrm{tr}(C^T X)$ は行列の内積です。
+
+SDP は線形計画法の推広みで、多くの非線形問題を SDP に変換できます。制御理論、量子情報、組合せ最適化の近似アルゴリズムなど、応用先は多岐にわたります。
+
+<div className="text-sm text-gray-500">
+  SDP は凸最適化の一種であり、多項式時間内点法で解くことができます。しかし問題サイズが大きくなると計算が重くなるため、スケーラビリティはまだ課題です。
+</div>
+
+## 8. 多様体上の最適化
+
+ときに、決定変数は単なるベクトル空間ではなく、**多様体 (manifold)** 上に住んでいます。
+
+### 例：固有値問題
+
+$$
+\begin{align}
+\text{minimize} \quad & x^T A x \\
+\text{subject to} \quad & |x|^2 = 1
+\end{align}
+$$
+
+この単位球面上での二次形式の最小化は、実は行列 $A$ の最小固有値を求める問題と等価です。
+
+### 例：スティーフェル多様体
+
+行列 $X$ が $X^T X = I$（列が正規直交）という制約を満たすとき、$X$ は**スティーフェル多様体** $\mathrm{St}(p, n)$ に属します。PCA や ICA の多変量版、あるいは行列分解など、多くの機械学習問題がこの多様体上の最適化として定式化されます。
+
+多様体上の最適化では、**レトラクション (retraction)** や**ベクトル輸送 (vector transport)** といった幾何学的な操作を用いて、多様体の曲率を考慮したアルゴリズムが設計されます。
+
+<div className="text-sm text-gray-500">
+  多様体最適化は比較的新しい分野で、Riemannian gradient descent など、微分幾何学とアルゴリズム論を融合させた深い理論があります。
+</div>
+
+## 9. アルゴリズムの選択
+
+どの問題クラスに属するかで、選ぶべきアルゴリズムが決まります：
+
+| 問題クラス | 代表的アルゴリズム | 計算量 | 大域最適性 |
+| --- | --- | --- | --- |
+| 線形計画法 (LP) | シンプレックス法、内点法 | 多項式 | ✓ 保証 |
+| 二次計画法 (QP) | 内点法、有効集合法 | 多項式（凸の場合） | ✓ 凸なら保証 |
+| 凸最適化 | 勾配法、加速勾配法、ADMM | 多項式 | ✓ 保証 |
+| 非線形非凸 | 勾配降下法、準ニュートン法 | 不定 | ✗ 局所最適性のみ |
+| 組合せ最適化 | 分枝切断法、メタヒューリスティクス | 指数 | ✗ |
+
+## 総まとめ
+
+数理最適化は、「制約のもとで目的を最適化する」という普遍的な枠組みで、産業界から科学まであらゆる意思決定を支えています。
+
+**基本形** $\min_{x \in S} f(x)$ から出発し、問題の構造（線形性、凸性、多様体性）に応じて適切なアルゴリズムを選ぶ——これが最適化エンジニアの核となるスキルです。
+
+凸最適化があるからこそ、機械学習は「損失関数を下げれば下げるほど解は良くなる」という信頼を得ることができます。そして、その凸性の数学的な美しさと計算的な効率が、現代の AI 時代を支える基盤となっているのです。
