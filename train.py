@@ -1,138 +1,117 @@
-# train.py 
+# train.py
+# 为 src/content/blog 下的每篇文章生成语义向量，写入 Supabase 的 post_embeddings，
+# 并计算每篇文章的 top-k 相似文章写入 recommendations 列。
 import os
+import sys
 import glob
 import re
 import numpy as np
+import yaml
 from supabase import create_client, Client
 from sentence_transformers import SentenceTransformer
-# from dotenv import load_dotenv
 
-# load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # 本地运行时读取 .env；GitHub Actions 中直接用 secrets 注入的环境变量
+except ImportError:
+    pass
+
+MODEL_NAME = 'all-MiniLM-L6-v2'  # 384 维，需与数据库 embedding 列维度一致
+TOP_K = 5
+FRONTMATTER_RE = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
 
 
-def parse_markdown_frontmatter(file_path):
+def parse_markdown(file_path):
     """提取 Astro 文章的 title 和 description"""
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
-    
-    # 匹配 Astro 开头的 --- 区域
-    match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
-    title, description = "", ""
+
+    frontmatter, body = {}, content
+    match = FRONTMATTER_RE.match(content)
     if match:
-        frontmatter = match.group(1)
-        for line in frontmatter.split('\n'):
-            if line.startswith('title:'):
-                title = line.replace('title:', '').strip().strip('"').strip("'")
-            elif line.startswith('description:'):
-                description = line.replace('description:', '').strip().strip('"').strip("'")
-    
+        try:
+            frontmatter = yaml.safe_load(match.group(1)) or {}
+        except yaml.YAMLError as e:
+            print(f"  ⚠️ frontmatter 解析失败 ({file_path}): {e}")
+        body = content[match.end():]
+
+    title = str(frontmatter.get('title') or '').strip()
+    description = str(frontmatter.get('description') or '').strip()
+
     # 没description，就截取正文前 100 字作为语义特征
     if not description:
-        body = content.split('---')[-1].strip()
-        body_clean = re.sub(r'[#\*`\$\-\n\{\}]', '', body)
-        description = body_clean[:100].replace('\n', ' ') + '...'
-    
+        body_clean = re.sub(r'[#\*`\$\-\{\}]', '', body)
+        body_clean = re.sub(r'\s+', ' ', body_clean).strip()
+        description = body_clean[:100] + '...'
+
     return title, description
 
-def parse_embedding(embedding):
-    """将字符串格式的 embedding 转换为 numpy 数组"""
-    if isinstance(embedding, str):
-        # 移除方括号并分割
-        embedding = embedding.strip('[]').split(',')
-        embedding = [float(x.strip()) for x in embedding]
-    return np.array(embedding, dtype=np.float32)
 
-def cosine_similarity(a, b):
-    """计算两个向量的余弦相似度"""
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+def get_supabase() -> Client:
+    url = os.environ.get("SUPABASE_URL")
+    # 写入需要 service_role key（绕过 RLS）
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    missing = [n for n, v in [("SUPABASE_URL", url), ("SUPABASE_SERVICE_ROLE_KEY", key)] if not v]
+    if missing:
+        sys.exit(f"❌ Fail! 缺少 Supabase 环境变量: {', '.join(missing)}")
+    return create_client(url, key)
 
-def generate_recommendations(supabase: Client, slug: str, embedding: list, top_k: int = 5):
-    """为指定文章生成 top_k 个推荐"""
-    response = supabase.table("post_embeddings").select("slug, title, description, embedding").execute()
-    
-    if not response.data:
-        print(f"⚠️ 数据库中没有其他文章")
-        return []
-    
-    recommendations = []
-    current_embedding = parse_embedding(embedding)
-    
-    for post in response.data:
-        if post['slug'] == slug:
-            continue
-        
-        other_embedding = parse_embedding(post['embedding'])
-        similarity = cosine_similarity(current_embedding, other_embedding)
-        
-        recommendations.append({
-            'slug': post['slug'],
-            'title': post['title'],
-            'similarity': similarity
-        })
-    
-    recommendations.sort(key=lambda x: x['similarity'], reverse=True)
-    top_recommendations = [r['slug'] for r in recommendations[:top_k]]
-    
-    supabase.table("post_embeddings").update({
-        "recommendations": top_recommendations
-    }).eq("slug", slug).execute()
-    
-    print(f"✅ 为文章 [{slug}] 生成了 {len(top_recommendations)} 个推荐")
-    return top_recommendations
+
+def compute_recommendations(slugs, embeddings, top_k=TOP_K):
+    """在内存中计算余弦相似度，返回 {slug: [推荐 slug...]}"""
+    vecs = np.asarray(embeddings, dtype=np.float32)
+    vecs /= np.linalg.norm(vecs, axis=1, keepdims=True)
+    sims = vecs @ vecs.T
+    np.fill_diagonal(sims, -np.inf)  # 排除自己
+
+    result = {}
+    for i, slug in enumerate(slugs):
+        order = np.argsort(-sims[i])[:min(top_k, len(slugs) - 1)]
+        result[slug] = [slugs[j] for j in order]
+    return result
+
 
 def main():
-    print("===> MLOps: Loading...")
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    supabase = get_supabase()
 
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not url or not key:
-        print("❌ Fail! 缺少 Supabase 环境变量！")
-        return
-    supabase: Client = create_client(url, key)
-
-    search_path = os.path.join('src', 'content', 'blog', '**', '*.md*')
-    post_files = glob.glob(search_path, recursive=True)
-
+    post_files = sorted(glob.glob(os.path.join('src', 'content', 'blog', '**', '*.md*'), recursive=True))
+    post_files = [p for p in post_files if p.endswith(('.md', '.mdx'))]
+    if not post_files:
+        sys.exit("❌ 没有找到任何文章，请确认在仓库根目录运行")
     print(f"===> 找到 {len(post_files)} 篇 Blogs")
-    
-    # 打印所有找到的文件，便于调试
+
+    posts = []
     for file_path in post_files:
-        file_name = os.path.basename(file_path)
-        slug = os.path.splitext(file_name)[0]
-        print(f"  📄 {file_name} → slug: {slug}")
+        slug = os.path.splitext(os.path.basename(file_path))[0]
+        title, description = parse_markdown(file_path)
+        posts.append({"slug": slug, "title": title or slug, "description": description})
+        print(f"  📄 {os.path.basename(file_path)} → slug: {slug}")
 
-    print(f"\n===> Processing...")
+    print(f"\n===> 加载模型 {MODEL_NAME} 并生成语义向量...")
+    model = SentenceTransformer(MODEL_NAME)
+    texts = [f"{p['title']} {p['description']}" for p in posts]
+    embeddings = model.encode(texts).tolist()
 
-    for file_path in post_files:
-        file_name = os.path.basename(file_path)
-        slug = os.path.splitext(file_name)[0]
-        
-        title, description = parse_markdown_frontmatter(file_path)
-        if not title:
-            title = slug 
-            
-        text_to_embed = f"{title} {description}"
-        
-        print(f"正在为文章 [{slug}] 生成深度学习语义向量...")
-        embedding = model.encode(text_to_embed).tolist()
+    slugs = [p['slug'] for p in posts]
+    recs = compute_recommendations(slugs, embeddings)
 
-        supabase.table("post_embeddings").upsert({
-            "slug": slug,
-            "title": title,
-            "description": description,
-            "embedding": embedding
-        }).execute()
+    rows = [
+        {**p, "embedding": emb, "recommendations": recs[p['slug']]}
+        for p, emb in zip(posts, embeddings)
+    ]
+    # 只写这几列，不会覆盖 featured / featured_order
+    supabase.table("post_embeddings").upsert(rows, on_conflict="slug").execute()
+    for slug in slugs:
+        print(f"✅ [{slug}] → {recs[slug]}")
 
-    print("\n===> 生成推荐关系...")
-    response = supabase.table("post_embeddings").select("slug, embedding").execute()
-    
-    for post in response.data:
-        slug = post['slug']
-        embedding = post['embedding']
-        generate_recommendations(supabase, slug, embedding, top_k=5)
+    # 数据库中存在但本地已删除的文章：只提示，不自动删除（避免误删 featured 配置）
+    existing = supabase.table("post_embeddings").select("slug").execute().data or []
+    stale = sorted({r['slug'] for r in existing} - set(slugs))
+    if stale:
+        print(f"\n⚠️ 以下 slug 在数据库中存在但本地没有对应文章（不会被推荐）: {stale}")
 
-    print("\n✅ ===> MLOps 同步成功！")
+    print(f"\n✅ ===> MLOps 同步成功！共 {len(rows)} 篇")
+
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,674 @@
+---
+title: "湯川相互作用と湯川ポテンシャル"
+description: "核力を中間子交換として理解し，クーロンポテンシャルとの比較から湯川ポテンシャルの短距離性を導く講義ノート。"
+pubDate: "2026-07-02"
+subcategory: "Quantum Mechanics"
+tags: ["湯川相互作用", "中間子論", "核力", "量子場理論"]
+author: "Hermitian JIANG"
+---
+
+## 1. 原子核を束縛する力とは何か
+
+原子核は陽子と中性子から構成されている。しかし，陽子は正の電荷を持つため，陽子同士の間にはクーロン斥力がはたらく。したがって，電磁相互作用だけを考えると，原子核は安定に存在できないように思われる。
+
+にもかかわらず，実際には原子核は安定に存在している。このことは，陽子や中性子を非常に短い距離で強く束縛する別の相互作用が存在することを示している。
+
+この相互作用を説明するために，湯川秀樹は中間子の交換によって核力が生じるという理論を提案した。これが湯川の中間子論である。
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 基本的な問い</h3>
+  <div className="text-amber-900">
+    原子核を束縛する力は何か？
+    <br />
+    <br />
+    核子の間で中間子が交換されることにより，短距離の強い相互作用が生じる。
+  </div>
+</div>
+
+ここでさらに基本的な問いとして，
+
+$$
+\text{そもそも「力」とは何か？}
+$$
+
+という問題を考える必要がある。
+
+古典力学では力は運動量を変化させるものとして定義される。一方，場の理論では力は場を媒介して伝わる相互作用として理解される。さらに量子場理論では，力やポテンシャルそのものよりも，相互作用を表すラグランジアン密度またはハミルトニアン密度が基本的な物理量となる。
+
+| 理論 | 基本的な量 |
+|---|---|
+| 古典力学 | 力 $F$ |
+| 場の古典論 | ポテンシャル $V,\Phi$ |
+| 量子場理論 | 相互作用ラグランジアン密度 $\mathcal L_{\mathrm{int}}$ |
+
+したがって，湯川相互作用を理解するためには，まず古典論における力とポテンシャルの関係を確認しておくことが重要である。
+
+## 2. 力とは何か
+
+### 2.1 古典力学における力
+
+古典力学では，力は物体の運動状態を変化させるものとして定義される。運動量を $\mathbf p$ とすると，
+
+$$
+\mathbf F = \frac{d\mathbf p}{dt}
+$$
+
+である。特に非相対論的な粒子に対しては，
+
+$$
+\mathbf p = m\mathbf v
+$$
+
+であるから，
+
+$$
+m\frac{d^2\mathbf x}{dt^2}=\mathbf F
+$$
+
+となる。
+
+保存力の場合，力はポテンシャル $V(\mathbf x)$ を用いて
+
+$$
+\mathbf F(\mathbf x)=-\nabla V(\mathbf x)
+$$
+
+と表される。つまり，古典力学ではポテンシャルが与えられれば，そこから力を得ることができる。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-5 my-6 shadow-sm">
+  <h3 className="text-slate-800 font-bold text-lg m-0 mb-3">古典力学が教えること</h3>
+
+$$
+V(\mathbf x)\longrightarrow \mathbf F(\mathbf x)
+$$
+
+  <p className="text-slate-700 m-0">
+    しかし，なぜポテンシャルがその形をしているのかは，さらに深い理論によって説明される。
+  </p>
+</div>
+
+その例として，次に電磁気学におけるクーロンポテンシャルを考える。
+
+### 2.2 電磁気学におけるポテンシャル
+
+真空中に電荷 $q_1$ を持つ粒子1が原点に静止しているとする。この粒子の存在によって，周囲には静電場 $\mathbf E(\mathbf x)$ が生じる。
+
+電荷密度はディラックのデルタ関数を用いて
+
+$$
+\rho(\mathbf x)=q_1\delta^3(\mathbf x)
+$$
+
+と書ける。したがって，ガウスの法則は
+
+$$
+\nabla\cdot\mathbf E(\mathbf x)
+=
+\frac{q_1}{\epsilon_0}\delta^3(\mathbf x)
+$$
+
+となる。
+
+静電ポテンシャル $\phi_E(r)$ を
+
+$$
+\mathbf E(\mathbf x)=-\nabla\phi_E(r)
+$$
+
+によって定義すると，ガウスの法則は
+
+$$
+\tag{5.2}
+\nabla^2\phi_E(r)
+=
+-\frac{q_1}{\epsilon_0}\delta^3(\mathbf x)
+$$
+
+と書ける。これはポアソン方程式である。
+
+球対称性を仮定すると，三次元極座標において
+
+$$
+\nabla^2
+=
+\frac{d^2}{dr^2}
++
+\frac{2}{r}\frac{d}{dr}
+$$
+
+であるから，
+
+$$
+\left(
+\frac{d^2}{dr^2}
++
+\frac{2}{r}\frac{d}{dr}
+\right)
+\phi_E(r)
+=
+-\frac{q_1}{\epsilon_0}\delta^3(\mathbf x)
+$$
+
+となる。
+
+$r\neq0$ では右辺はゼロである。このとき解は
+
+$$
+\tag{5.4}
+\phi_E(r)=\frac{q_1}{4\pi\epsilon_0}\frac{1}{r}
+$$
+
+で与えられる。
+
+実際，$r\neq0$ で
+
+$$
+\frac{d}{dr}\left(\frac{1}{r}\right)=-\frac{1}{r^2},
+\qquad
+\frac{d^2}{dr^2}\left(\frac{1}{r}\right)=\frac{2}{r^3}
+$$
+
+であるから，
+
+$$
+\left(
+\frac{d^2}{dr^2}
++
+\frac{2}{r}\frac{d}{dr}
+\right)
+\frac{1}{r}
+=
+\frac{2}{r^3}
++
+\frac{2}{r}\left(-\frac{1}{r^2}\right)
+=0
+$$
+
+が成り立つ。
+
+### 2.3 クーロンポテンシャルとクーロン力
+
+粒子2の電荷を $q_2$ とすると，粒子2が感じるクーロンポテンシャルは
+
+$$
+V_C(r)
+=
+q_2\phi_E(r)
+=
+\frac{q_1q_2}{4\pi\epsilon_0}\frac{1}{r}
+$$
+
+である。ここで $q_i=eQ_i$ と書けば，
+
+$$
+\tag{5.7}
+V_C(r)
+=
+\frac{e^2}{4\pi\epsilon_0}
+\frac{Q_1Q_2}{r}
+$$
+
+となる。
+
+したがって，粒子2にはたらく力は
+
+$$
+\mathbf F
+=
+-\nabla V_C(r)
+=
+\frac{e^2}{4\pi\epsilon_0}
+\frac{Q_1Q_2}{r^2}\mathbf e_r
+$$
+
+である。
+
+このように，電磁気学では
+
+$$
+\text{電荷}
+\longrightarrow
+\text{場の方程式}
+\longrightarrow
+\text{ポテンシャル}
+\longrightarrow
+\text{力}
+$$
+
+という順序で力が理解される。
+
+## 3. 量子論におけるポテンシャルと相互作用
+
+古典力学では力 $\mathbf F$ が中心的に記述された。しかし量子力学では，粒子の運動は波動関数によって記述され，ポテンシャルはシュレーディンガー方程式の中に現れる。
+
+したがって，量子力学では力そのものよりも，ポテンシャルの方が基本的な役割を持つ。
+
+さらに量子場理論では，ポテンシャルよりも相互作用を表す項が基本になる。すなわち，素粒子の生成・消滅を含む相互作用ハミルトニアン密度や相互作用ラグランジアン密度が基本的な物理量となる。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">VIEWPOINT</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">力から相互作用へ</h3>
+
+$$
+\begin{aligned}
+\text{古典力学:} \quad & \mathbf F=-\nabla V,\\
+\text{量子力学:} \quad & V \text{ が波動関数の時間発展を決める},\\
+\text{量子場理論:} \quad & \mathcal L_{\mathrm{int}} \text{ が素粒子間の相互作用を決める}.
+\end{aligned}
+$$
+</div>
+
+特に，量子場理論では力は「力の媒介粒子」の交換として理解される。例えば電磁力は光子の交換によって記述され，核力は中間子の交換によって記述される。
+
+$$
+\text{媒介粒子の交換}
+\quad\Longrightarrow\quad
+\text{有効ポテンシャル}
+\quad\Longrightarrow\quad
+\text{古典的な力}
+$$
+
+この考え方が，次に扱う湯川相互作用の基本的な視点である。
+
+## 4. クーロンポテンシャルから湯川ポテンシャルへ
+
+前節で見たように，クーロンポテンシャルはポアソン方程式
+
+$$
+\tag{5.2}
+\nabla^2\phi_E(r)
+=
+-\frac{q_1}{\epsilon_0}\delta^3(\mathbf x)
+$$
+
+の解として得られた。
+
+一方，湯川理論では，中間子場 $\phi$ は質量を持つ場である。そのため，静的な極限では電磁場のポアソン方程式に対応する方程式が
+
+$$
+\tag{5.14*}
+(\nabla^2-\mu^2)\phi(r)
+=
+\text{source}
+$$
+
+の形になる。
+
+ここで $\mu$ は中間子の質量である。電磁場の場合には光子が質量を持たないため，方程式には $\mu^2$ の項が現れない。しかし中間子が質量を持つ場合には，この質量項がポテンシャルの形を大きく変える。
+
+実際，クーロンポテンシャルは
+
+$$
+V_C(r)\propto \frac{1}{r}
+$$
+
+であったのに対し，湯川ポテンシャルは
+
+$$
+V_Y(r)\propto -\frac{e^{-\mu r}}{r}
+$$
+
+の形になる。
+
+この指数因子 $e^{-\mu r}$ によって，力は短距離でのみ有効になる。したがって，媒介粒子が質量を持つことは，核力が短距離力であることを自然に説明する。
+
+|  | 電磁相互作用 | 湯川相互作用 |
+|---|---|---|
+| 媒介粒子 | 光子 | 中間子 |
+| 媒介粒子の質量 | $0$ | $\mu$ |
+| 場の方程式 | $\nabla^2\phi_E=-\rho/\epsilon_0$ | $(\nabla^2-\mu^2)\phi=\text{source}$ |
+| ポテンシャル | $\displaystyle \frac{1}{r}$ | $\displaystyle \frac{e^{-\mu r}}{r}$ |
+| 力の到達距離 | 長距離 | 短距離 |
+
+次節では，核子場 $\psi$ と中間子場 $\phi$ の相互作用を
+
+$$
+\mathcal L_{\mathrm{int}}
+=
+-f\bar\psi\phi\psi
+$$
+
+として導入し，この相互作用から中間子場の方程式を導き，そこから湯川ポテンシャルが得られることを見る。
+
+## 5. 中間子理論
+
+### 5.1 核力の特徴
+
+湯川理論に入る前に，核力がどのような性質を持つかを整理しておく。
+
+実験から，核力には次の特徴があることが知られている。
+
+1. 電荷に依存しない（charge independence）
+2. $10^{-15}\sim10^{-14}\ \mathrm{m}$ の領域では強い引力
+3. それより長距離では急激に弱くなる
+4. 非常に短距離では強い斥力
+
+遠距離ではほぼゼロであり，中距離では引力，さらに短距離では強い斥力となる。
+
+### 5.2 核子と中間子
+
+陽子と中性子は核力に関して非常によく似た性質を持つ。そこで核子場を
+
+$$
+\widehat{N} =
+\begin{pmatrix}
+\widehat{p}\\
+\widehat{n}
+\end{pmatrix}
+$$
+
+としてまとめて扱う。これはアイソスピン二重項と呼ばれる。
+
+核子場はディラック方程式
+
+$$
+(i\gamma^\mu\partial_\mu-m)\psi=0
+$$
+
+に従う。
+
+一方，湯川は核力を媒介する粒子として $\pi$ 中間子を導入した。
+
+$$
+\pi^+,\qquad
+\pi^0,\qquad
+\pi^-
+$$
+
+の3種類が存在する。
+
+中間子場はスピン0の粒子であり，クライン＝ゴルドン方程式
+
+$$
+(\Box+\mu^2)\phi(x)=0
+$$
+
+に従う。ここで $\mu$ は中間子の質量である。
+
+### 5.3 湯川相互作用
+
+フェルミオンとスピン0粒子との間の相互作用
+
+$$
+\mathcal L_{\mathrm{int}}
+=
+-f\bar\psi\phi\psi
+$$
+
+を湯川相互作用という。ここで，
+
+- $\psi$：核子場
+- $\phi$：中間子場
+- $f$：結合定数
+
+である。
+
+この相互作用は
+
+$$
+N
+\longleftrightarrow
+N+\pi
+$$
+
+という過程を表している。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">フェインマン図の模式図：中間子の放出</h3>
+  <div className="text-center text-xl font-semibold tracking-wide">
+    $N \longrightarrow N+\pi$
+  </div>
+  <p className="text-slate-700 mt-4 mb-0">
+    核子 $N$ が中間子 $\pi$ を放出し，別の核子状態へ移る過程として表される。
+  </p>
+</div>
+
+核子同士の相互作用は，中間子交換過程として理解できる。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">フェインマン図の模式図：中間子交換</h3>
+  <div className="text-center text-xl font-semibold tracking-wide">
+    $N \longrightarrow N+\pi \longrightarrow N$
+  </div>
+  <p className="text-slate-700 mt-4 mb-0">
+    片方の核子が中間子を放出し，もう一方の核子がそれを吸収することで，核子間の有効相互作用が生じる。
+  </p>
+</div>
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">媒介粒子による比較</h3>
+  <div className="text-amber-900">
+    電磁力：光子交換
+    <br />
+    核力：$\pi$ 中間子交換
+  </div>
+</div>
+
+### 5.4 中間子場の方程式
+
+自由場のラグランジアン
+
+$$
+\tag{5.13a}
+\mathcal L_0
+=
+\bar\psi(i\gamma^\mu\partial_\mu-m)\psi
++
+\frac12
+(\partial_\mu\phi\partial^\mu\phi-\mu^2\phi^2)
+$$
+
+に湯川相互作用を加えると，
+
+$$
+\tag{5.13b}
+\mathcal L
+=
+\mathcal L_0
+-f\bar\psi\phi\psi
+$$
+
+となる。
+
+作用
+
+$$
+S=\int \mathcal L\,d^4x
+$$
+
+に対して最小作用の原理を適用すると，
+
+$$
+\tag{5.14}
+(\Box+\mu^2)\phi(x)
+=
+-f\bar\psi(x)\psi(x)
+$$
+
+が得られる。
+
+これは電磁気学における
+
+$$
+\nabla^2\Phi
+=
+-\frac{\rho}{\epsilon_0}
+$$
+
+に対応する方程式である。
+
+| 電磁気学 | 中間子理論 |
+|---|---|
+| 電荷密度 $\rho$ | $f\bar\psi\psi$ |
+| 静電ポテンシャル $\Phi$ | 中間子場 $\phi$ |
+
+### 5.5 湯川ポテンシャル
+
+原点に静止した核子を置く。静的極限では
+
+$$
+\partial_t\phi=0
+$$
+
+なので，
+
+$$
+\tag{5.14}
+(\Box+\mu^2)\phi
+=
+-f\bar\psi\psi
+$$
+
+は
+
+$$
+\tag{5.14*}
+(\nabla^2-\mu^2)\phi
+=
+f\bar\psi\psi
+$$
+
+となる。
+
+点状核子を
+
+$$
+\bar\psi\psi
+=
+\delta^3(\mathbf x)
+$$
+
+で近似すると，
+
+$$
+(\nabla^2-\mu^2)\phi
+=
+f\delta^3(\mathbf x)
+$$
+
+を得る。
+
+この方程式の解は
+
+$$
+\tag{5.18}
+\phi(r)
+=
+-\frac{f}{4\pi}
+\frac{1}{r} e^{-\mu r}
+$$
+
+である。したがって核子間ポテンシャルは
+
+$$
+\tag{5.19}
+V_Y(r)
+=
+-\frac{f^2}{4\pi}
+\frac{e^{-\mu r}}{r}
+$$
+
+となる。これを湯川ポテンシャルという。
+
+### 5.6 核力との比較
+
+クーロンポテンシャル
+
+$$
+V_C(r)
+=
+\frac{e^2}{4\pi\epsilon_0}
+\frac1r
+$$
+
+と比較すると，
+
+$$
+V_Y(r)
+=
+-\frac{f^2}{4\pi}
+\frac{e^{-\mu r}}r
+$$
+
+には
+
+$$
+e^{-\mu r}
+$$
+
+という因子が存在する。
+
+このため $r\gg 1/\mu$ では
+
+$$
+V_Y(r)\rightarrow0
+$$
+
+となる。したがって，
+
+$$
+R\sim\frac1\mu
+$$
+
+が力の到達距離になる。
+
+媒介粒子が重いほど，力は短距離になる。これは核力が短距離力であることを自然に説明する。
+
+また結合定数 $f$ が十分大きければ，核力はクーロン斥力より強くなり，核子を束縛することができる。
+
+## 6. まとめ
+
+湯川理論では，
+
+$$
+\mathcal L_{\mathrm{int}}
+=
+-f\bar\psi\phi\psi
+$$
+
+という相互作用から
+
+$$
+(\Box+\mu^2)\phi
+=
+-f\bar\psi\psi
+$$
+
+が導かれる。
+
+その静的解として
+
+$$
+V_Y(r)
+=
+-\frac{f^2}{4\pi}
+\frac{e^{-\mu r}}r
+$$
+
+が得られる。
+
+$$
+\text{中間子交換}
+\Longrightarrow
+\text{湯川ポテンシャル}
+\Longrightarrow
+\text{核力}
+$$
+
+という構造によって，核力の短距離性を説明することができる。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">SUMMARY</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">湯川相互作用から標準模型へ</h3>
+
+$$
+\begin{aligned}
+1935\text{年:}\quad
+& \bar\psi\phi\psi
+&& \text{湯川相互作用による核力の説明},\\
+\text{後の標準模型:}\quad
+& \bar\psi H\psi
+&& \text{フェルミオン質量の起源}.
+\end{aligned}
+$$
+</div>

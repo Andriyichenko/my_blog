@@ -121,7 +121,7 @@ export const people = [
     nameEn: 'Hermitian JIANG',
     role: '素粒子/理論物理学',
     category: ['physics'] as const,
-    avatar: '/authors/jiang-bo-fang.jpg',
+    avatar: '/authors/hermitian-jiang.jpg',
     email: 'ddy.yukikaze@gmail.com',
     
     shortBio: '素粒子/理論物理学',
