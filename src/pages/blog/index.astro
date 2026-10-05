@@ -151,7 +151,7 @@ const categoryColors = {
     <div id="filter-sidebar-overlay" class="fixed inset-0 bg-black/50 z-50 opacity-0 invisible transition-opacity duration-300"></div>
 
     {/* Filter 侧边栏 */}
-    <aside id="filter-sidebar" class="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-zinc-900 z-50 transform -translate-x-full transition-transform duration-300 ease-out shadow-2xl overflow-y-auto">
+    <aside id="filter-sidebar" class="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-zinc-900 z-50 transform -translate-x-full transition-[transform,opacity] duration-300 ease-out shadow-2xl overflow-y-auto">
         <div class="p-6">
             <div class="flex items-center justify-between mb-8">
                 <h2 class="text-xl font-serif italic font-bold text-zinc-900 dark:text-white tracking-tight">Topics</h2>
@@ -420,18 +420,109 @@ const categoryColors = {
             articleCards.forEach((el, i) => setTimeout(() => el.classList.add('visible'), i * 50));
 
             // 侧边栏开关
-            function toggleSidebar(show: boolean) {
+            // fade = true：选中筛选条件后原地渐隐关闭，渐隐结束后再移回屏幕外
+            let sidebarFadeTimer: number | undefined;
+            const SIDEBAR_FADE_MS = 300;
+            function toggleSidebar(show: boolean, fade = false) {
+                clearTimeout(sidebarFadeTimer);
                 if (show) {
-                    filterSidebar?.classList.remove('-translate-x-full');
+                    filterSidebar?.classList.remove('-translate-x-full', 'opacity-0');
                     filterSidebarOverlay?.classList.remove('opacity-0', 'invisible');
                     filterSidebarOverlay?.classList.add('opacity-100', 'visible');
                     document.body.style.overflow = 'hidden';
                 } else {
-                    filterSidebar?.classList.add('-translate-x-full');
+                    if (fade && filterSidebar) {
+                        filterSidebar.classList.add('opacity-0');
+                        sidebarFadeTimer = window.setTimeout(() => {
+                            filterSidebar.style.transition = 'none';
+                            filterSidebar.classList.add('-translate-x-full');
+                            filterSidebar.classList.remove('opacity-0');
+                            void filterSidebar.offsetWidth;
+                            filterSidebar.style.transition = '';
+                        }, SIDEBAR_FADE_MS);
+                    } else {
+                        filterSidebar?.classList.add('-translate-x-full');
+                    }
                     filterSidebarOverlay?.classList.add('opacity-0', 'invisible');
                     filterSidebarOverlay?.classList.remove('opacity-100', 'visible');
                     document.body.style.overflow = '';
                 }
+            }
+
+            // 结果切换动画：列表整体淡出 → 原地替换内容（必要时瞬间滚动到列表顶部）→ 卡片依次淡入
+            // 列表不可见时完成布局变化和滚动，避免卡片边消失边移动、页面边滚动边重排
+            const articlesList = document.getElementById('articles-list');
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let transitionToken = 0;
+
+            function transitionResults(opts: { scroll?: boolean; delay?: number } = {}) {
+                const token = ++transitionToken;
+                const fadeOutMs = reduceMotion ? 0 : Math.max(opts.delay ?? 0, 180);
+                if (articlesList) {
+                    articlesList.style.transition = `opacity ${fadeOutMs}ms ease`;
+                    articlesList.style.opacity = '0';
+                }
+
+                window.setTimeout(() => {
+                    if (token !== transitionToken) return;
+                    const matched: HTMLElement[] = [];
+                    articleCards.forEach((el) => {
+                        el.classList.remove('visible');
+                        if (cardMatches(el)) {
+                            el.classList.remove('hidden-card');
+                            el.classList.add('opacity-0', 'translate-y-4');
+                            matched.push(el);
+                        } else {
+                            el.classList.add('hidden-card', 'opacity-0', 'translate-y-4');
+                        }
+                    });
+                    noResults?.classList.toggle('hidden', matched.length > 0);
+
+                    if (opts.scroll) scrollToResults();
+
+                    if (articlesList) {
+                        articlesList.style.transition = 'none';
+                        articlesList.style.opacity = '1';
+                        void articlesList.offsetHeight;
+                    }
+                    matched.forEach((el, i) => {
+                        window.setTimeout(() => {
+                            if (token !== transitionToken) return;
+                            el.classList.remove('opacity-0', 'translate-y-4');
+                            el.classList.add('visible');
+                        }, reduceMotion ? 0 : Math.min(i, 10) * 45);
+                    });
+                }, fadeOutMs);
+            }
+
+            // 列表顶部不在视野内（或离得太远）时才跳转，否则保持当前位置
+            function scrollToResults() {
+                if (!articlesList) return;
+                const stickyBar = filterSidebarBtn?.closest('.sticky') as HTMLElement | null;
+                const offset = (stickyBar?.offsetHeight ?? 0) + 16;
+                const rectTop = articlesList.getBoundingClientRect().top;
+                if (rectTop >= offset && rectTop <= window.innerHeight * 0.4) return;
+                window.scrollTo({ top: rectTop + window.scrollY - offset, behavior: 'instant' as ScrollBehavior });
+            }
+
+            // 选中后：侧边栏渐隐关闭，同时切换结果
+            function showResults() {
+                closeAllSubMenus();
+                const fromSidebar = filterSidebar && !filterSidebar.classList.contains('-translate-x-full');
+                if (fromSidebar) toggleSidebar(false, true);
+                transitionResults({ scroll: true, delay: fromSidebar ? SIDEBAR_FADE_MS : 0 });
+            }
+
+            // 单选：清空其他条件，只保留这一个；再次点击已选中的条件则取消
+            function selectSingle(type: 'topic' | 'author' | 'tag', value: string) {
+                const key = type === 'topic' ? 'topics' : type === 'author' ? 'authors' : 'tags';
+                const alreadyOnly = activeFilters[key].has(value) &&
+                    activeFilters.topics.size + activeFilters.authors.size + activeFilters.tags.size === 1;
+                activeFilters.topics.clear();
+                activeFilters.authors.clear();
+                activeFilters.tags.clear();
+                if (!alreadyOnly && value !== 'all') activeFilters[key].add(value);
+                updateActiveUI();
             }
 
             filterSidebarBtn?.addEventListener('click', () => toggleSidebar(true));
@@ -439,12 +530,10 @@ const categoryColors = {
             filterSidebarOverlay?.addEventListener('click', () => toggleSidebar(false));
 
             // 文章过滤
-            function filterArticles() {
-                let visibleCount = 0;
-                articleCards.forEach((el) => {
+            function cardMatches(el: HTMLElement): boolean {
                     const id = el.dataset.id;
                     const data = (window as any).blogData?.find((p: any) => p.id === id);
-                    if (!data) return;
+                    if (!data) return false;
 
                     let searchMatch = true;
                     if (currentSearch) {
@@ -470,7 +559,14 @@ const categoryColors = {
                         filterMatch = filterMatch && [...activeFilters.tags].some(t => cardTags.includes(t));
                     }
 
-                    if (searchMatch && filterMatch) {
+                    return searchMatch && filterMatch;
+            }
+
+            function filterArticles() {
+                transitionToken++;
+                let visibleCount = 0;
+                articleCards.forEach((el) => {
+                    if (cardMatches(el)) {
                         el.classList.remove('hidden-card');
                         requestAnimationFrame(() => {
                             el.classList.remove('opacity-0', 'translate-y-4');
@@ -495,7 +591,8 @@ const categoryColors = {
                     const val = btn.dataset.filter;
                     let isActive = false;
                     if (type === 'topic') {
-                        isActive = activeFilters.topics.has(val || '') || (val === 'all' && activeFilters.topics.size === 0);
+                        isActive = activeFilters.topics.has(val || '') ||
+                            (val === 'all' && activeFilters.topics.size + activeFilters.authors.size + activeFilters.tags.size === 0);
                     } else if (type === 'author') {
                         isActive = activeFilters.authors.has(val || '');
                     } else if (type === 'tag') {
@@ -527,10 +624,12 @@ const categoryColors = {
                     }
                     const filter = btn.dataset.filter;
                     if (filter) {
+                        activeFilters.authors.clear();
+                        activeFilters.tags.clear();
                         activeFilters.topics.clear();
                         activeFilters.topics.add(filter);
                         updateActiveUI();
-                        filterArticles();
+                        transitionResults();
                     }
                 });
             });
@@ -551,10 +650,14 @@ const categoryColors = {
                     }
                     const filter = btn.dataset.filter;
                     if (filter) {
+                        activeFilters.authors.clear();
+                        activeFilters.tags.clear();
                         activeFilters.topics.clear();
                         activeFilters.topics.add(filter);
                         updateActiveUI();
-                        filterArticles();
+                        // 没有子分类可选时直接关闭
+                        if (!subMenu) showResults();
+                        else transitionResults();
                     }
                 });
             });
@@ -565,12 +668,8 @@ const categoryColors = {
                     e.stopPropagation();
                     const filter = btn.dataset.filter;
                     if (!filter) return;
-                    activeFilters.topics.clear();
-                    activeFilters.topics.add(filter);
-                    updateActiveUI();
-                    filterArticles();
-                    toggleSidebar(false);
-                    closeAllSubMenus();
+                    selectSingle('topic', filter);
+                    showResults();
                 });
             });
 
@@ -585,18 +684,9 @@ const categoryColors = {
                     const filter = btn.dataset.filter;
                     if (!type || !filter) return;
 
-                    if (type === 'author') {
-                        if (activeFilters.authors.has(filter)) activeFilters.authors.delete(filter);
-                        else activeFilters.authors.add(filter);
-                    } else if (type === 'topic') {
-                        activeFilters.topics.clear();
-                        toggleSidebar(false);
-                    } else if (type === 'tag') {
-                        if (activeFilters.tags.has(filter)) activeFilters.tags.delete(filter);
-                        else activeFilters.tags.add(filter);
-                    }
-                    updateActiveUI();
-                    filterArticles();
+                    if (type !== 'topic' && type !== 'author' && type !== 'tag') return;
+                    selectSingle(type, filter);
+                    showResults();
                 });
             });
 
@@ -605,9 +695,8 @@ const categoryColors = {
                 btn.addEventListener('click', () => {
                     const filter = btn.dataset.filter;
                     if (filter === 'all') {
-                        activeFilters.topics.clear();
-                        updateActiveUI();
-                        filterArticles();
+                        selectSingle('topic', 'all');
+                        transitionResults();
                     }
                 });
             });
@@ -649,7 +738,7 @@ const categoryColors = {
                 if (searchInput) searchInput.value = '';
                 clearBtn?.classList.add('hidden');
                 updateActiveUI();
-                filterArticles();
+                transitionResults({ scroll: true });
             });
         });
 
