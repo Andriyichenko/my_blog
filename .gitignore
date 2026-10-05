@@ -24,3 +24,6 @@ pnpm-debug.log*
 .idea/
 stuff/
 CLAUDE.md
+
+# python
+__pycache__/
