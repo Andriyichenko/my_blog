@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { SITE_DESCRIPTION } from '../consts';
 import Card from '../components/Card.astro';
 import { Image } from 'astro:assets';
 import profileImg from '../assets/port_img.jpg';
@@ -103,7 +104,7 @@ const physicsProjects = allProjects.filter(p => p.category === 'physics');
 const csProjects      = allProjects.filter(p => p.category === 'cs');
 ---
 
-<Layout title="立命館数理Blog" description="Notes and projects on mathematics, deep learning, and financial mathematics.">
+<Layout title="立命館数理Blog" description={SITE_DESCRIPTION}>
 
     {/* --- Hero Section: Slider --- */}
     <section class="mb-20 md:mb-32 pt-10 px-4 md:px-0">
