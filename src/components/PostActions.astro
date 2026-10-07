@@ -1,0 +1,273 @@
+---
+// 文章的「いいね」「シェア」。同一页面可放多个（标题下 / 文末），状态由下方脚本统一同步。
+// 数据全部经由 Supabase RPC：get_post_engagement / set_post_like / record_post_share
+interface Props {
+    slug: string;
+    title: string;
+    variant?: 'hero' | 'footer';
+}
+
+const { slug, title, variant = 'hero' } = Astro.props;
+// 分享文案用纯文本标题：去掉 LaTeX 的 $ 和 \displaystyle 之类的排版命令
+const shareTitle = title.replace(/\$+/g, '').replace(/\\(displaystyle|textstyle)\s*/g, '').trim();
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+const channels = [
+    { id: 'copy', label: 'リンクをコピー', short: 'コピー' },
+    { id: 'x', label: 'X でポスト', short: 'X' },
+    { id: 'line', label: 'LINE で送る', short: 'LINE' },
+    { id: 'hatena', label: 'はてなブックマーク', short: 'はてブ' },
+    { id: 'facebook', label: 'Facebook でシェア', short: 'Facebook' },
+] as const;
+---
+
+<div
+    class:list={['post-actions', variant === 'hero' ? 'flex items-center justify-center gap-2.5' : '']}
+    data-post-actions
+    data-variant={variant}
+    data-slug={slug}
+    data-title={shareTitle}
+    data-sb-url={supabaseUrl}
+    data-sb-key={supabaseAnonKey}
+    data-liked="false"
+>
+    {variant === 'hero' ? (
+        <>
+            <button type="button" data-like aria-pressed="false" aria-label="いいね" class="pa-like pa-pill">
+                <span class="pa-heart" aria-hidden="true">
+                    <svg class="pa-heart-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                    <svg class="pa-heart-fill" viewBox="0 0 24 24" fill="currentColor"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                    <span class="pa-burst"></span>
+                </span>
+                <span data-like-count class="tabular-nums">–</span>
+            </button>
+
+            <div class="relative">
+                <button type="button" data-share-toggle aria-haspopup="menu" aria-expanded="false" class="pa-share pa-pill">
+                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3V15" /></svg>
+                    <span>シェア</span>
+                    <span data-share-count class="pa-share-count tabular-nums" hidden></span>
+                </button>
+
+                <div data-share-menu role="menu" aria-label="シェア先" class="pa-menu" hidden>
+                    {channels.map((c) => (
+                        <a href="#" role="menuitem" data-share-channel={c.id} class="pa-menu-item" target={c.id === 'copy' ? undefined : '_blank'} rel="noopener noreferrer">
+                            <span class:list={['pa-badge', `pa-badge-${c.id}`]} aria-hidden="true">
+                                {c.id === 'copy' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>}
+                                {c.id === 'x' && <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>}
+                                {c.id === 'line' && 'L'}
+                                {c.id === 'hatena' && 'B!'}
+                                {c.id === 'facebook' && 'f'}
+                            </span>
+                            <span>{c.label}</span>
+                        </a>
+                    ))}
+                    <button type="button" role="menuitem" data-share-channel="native" class="pa-menu-item" hidden>
+                        <span class="pa-badge pa-badge-native" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+                        </span>
+                        <span>その他のアプリ</span>
+                    </button>
+                </div>
+            </div>
+        </>
+    ) : (
+        <section class="rounded-2xl border border-zinc-200 bg-zinc-50/70 px-5 py-5 md:px-7 md:py-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                <div class="flex items-center gap-4">
+                    <button type="button" data-like aria-pressed="false" aria-label="いいね" class="pa-like pa-like-lg">
+                        <span class="pa-heart" aria-hidden="true">
+                            <svg class="pa-heart-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                            <svg class="pa-heart-fill" viewBox="0 0 24 24" fill="currentColor"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                            <span class="pa-burst"></span>
+                        </span>
+                    </button>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-zinc-900">
+                            <span class="pa-prompt-default">役に立ったら「いいね」</span>
+                            <span class="pa-prompt-liked">ありがとうございます！</span>
+                        </p>
+                        <p class="mt-0.5 text-xs text-zinc-500">
+                            <span data-like-count class="tabular-nums font-medium text-zinc-700">–</span> 人がいいねしました
+                            <span data-share-wrap hidden> · <span data-share-count class="tabular-nums font-medium text-zinc-700"></span> 回シェア</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2" role="group" aria-label="シェア">
+                    {channels.map((c) => (
+                        <a href="#" data-share-channel={c.id} class="pa-icon-btn" title={c.label} aria-label={c.label} target={c.id === 'copy' ? undefined : '_blank'} rel="noopener noreferrer">
+                            <span class:list={['pa-badge', `pa-badge-${c.id}`]} aria-hidden="true">
+                                {c.id === 'copy' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>}
+                                {c.id === 'x' && <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>}
+                                {c.id === 'line' && 'L'}
+                                {c.id === 'hatena' && 'B!'}
+                                {c.id === 'facebook' && 'f'}
+                            </span>
+                        </a>
+                    ))}
+                    <button type="button" data-share-channel="native" class="pa-icon-btn" title="その他のアプリ" aria-label="その他のアプリでシェア" hidden>
+                        <span class="pa-badge pa-badge-native" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    )}
+</div>
+
+<style>
+    /* ---- 共通ボタン ---- */
+    .pa-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        height: 2.5rem;
+        padding: 0 1rem;
+        border-radius: 9999px;
+        border: 1px solid #e4e4e7;
+        background: #ffffff;
+        color: #52525b;
+        font-size: 0.875rem;
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+        transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+    .pa-pill:hover { border-color: #d4d4d8; color: #18181b; box-shadow: 0 2px 8px rgb(0 0 0 / 0.06); }
+    .pa-pill:active { transform: scale(0.96); }
+    .pa-pill:focus-visible, .pa-like-lg:focus-visible, .pa-icon-btn:focus-visible, .pa-menu-item:focus-visible {
+        outline: 2px solid #a855f7;
+        outline-offset: 2px;
+    }
+
+    .pa-share[aria-expanded='true'] { border-color: #d8b4fe; color: #7e22ce; background: #faf5ff; }
+    .pa-share:hover { color: #7e22ce; border-color: #e9d5ff; }
+    .pa-share-count {
+        min-width: 1.25rem;
+        padding: 0 0.375rem;
+        border-radius: 9999px;
+        background: #f4f4f5;
+        color: #71717a;
+        font-size: 0.75rem;
+        line-height: 1.25rem;
+        text-align: center;
+    }
+
+    /* ---- いいね ---- */
+    .pa-heart { position: relative; display: inline-grid; place-items: center; width: 1.125rem; height: 1.125rem; }
+    .pa-heart svg { grid-area: 1 / 1; width: 100%; height: 100%; transition: opacity 0.2s, transform 0.2s; }
+    .pa-heart-fill { opacity: 0; transform: scale(0.4); }
+    .pa-like:hover { color: #e11d48; border-color: #fecdd3; }
+    [data-liked='true'] .pa-like { color: #e11d48; border-color: #fecdd3; background: #fff1f2; }
+    [data-liked='true'] .pa-heart-fill { opacity: 1; transform: scale(1); }
+    [data-liked='true'] .pa-heart-outline { opacity: 0; }
+
+    .pa-like-lg {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 3.25rem;
+        height: 3.25rem;
+        border-radius: 9999px;
+        border: 1px solid #e4e4e7;
+        background: #ffffff;
+        color: #71717a;
+        transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.1s, box-shadow 0.2s;
+    }
+    .pa-like-lg .pa-heart { width: 1.5rem; height: 1.5rem; }
+    .pa-like-lg:hover { color: #e11d48; border-color: #fecdd3; box-shadow: 0 4px 14px rgb(244 63 94 / 0.12); }
+    .pa-like-lg:active { transform: scale(0.94); }
+    [data-liked='true'] .pa-like-lg { background: #f43f5e; border-color: #f43f5e; color: #ffffff; box-shadow: 0 6px 18px rgb(244 63 94 / 0.28); }
+
+    .pa-prompt-liked { display: none; }
+    [data-liked='true'] .pa-prompt-default { display: none; }
+    [data-liked='true'] .pa-prompt-liked { display: inline; }
+
+    .pa-burst {
+        position: absolute;
+        inset: -0.5rem;
+        border-radius: 9999px;
+        border: 2px solid #fb7185;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .pa-pop .pa-heart-fill { animation: pa-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+    .pa-pop .pa-burst { animation: pa-burst 0.5s ease-out; }
+    @keyframes pa-pop { 0% { transform: scale(0.3); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+    @keyframes pa-burst { 0% { opacity: 0.8; transform: scale(0.4); } 100% { opacity: 0; transform: scale(1.4); } }
+
+    /* ---- シェアメニュー ---- */
+    .pa-menu {
+        position: absolute;
+        z-index: 30;
+        top: calc(100% + 0.5rem);
+        left: 50%;
+        width: 14rem;
+        padding: 0.375rem;
+        border-radius: 1rem;
+        border: 1px solid #e4e4e7;
+        background: #ffffff;
+        box-shadow: 0 12px 32px rgb(0 0 0 / 0.12);
+        transform: translateX(-50%);
+        text-align: left;
+        animation: pa-menu-in 0.14s ease-out;
+    }
+    @keyframes pa-menu-in { from { opacity: 0; transform: translate(-50%, -4px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    .pa-menu-item {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.625rem;
+        border-radius: 0.625rem;
+        color: #3f3f46;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .pa-menu-item:hover, .pa-menu-item:focus-visible { background: #f4f4f5; color: #18181b; }
+    .pa-menu-item[hidden], .pa-icon-btn[hidden] { display: none; }
+
+    .pa-icon-btn {
+        display: grid;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+        border: 1px solid #e4e4e7;
+        background: #ffffff;
+        transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .pa-icon-btn:hover { border-color: #d4d4d8; transform: translateY(-1px); box-shadow: 0 4px 12px rgb(0 0 0 / 0.08); }
+
+    .pa-badge {
+        display: grid;
+        place-items: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 800;
+        line-height: 1;
+        color: #ffffff;
+    }
+    .pa-icon-btn .pa-badge { width: 1.5rem; height: 1.5rem; border-radius: 9999px; }
+    .pa-badge svg { width: 0.875rem; height: 0.875rem; }
+    .pa-badge-copy { background: #f3e8ff; color: #7e22ce; }
+    .pa-badge-x { background: #18181b; }
+    .pa-badge-line { background: #06c755; font-size: 0.8rem; }
+    .pa-badge-hatena { background: #00a4de; font-size: 0.65rem; letter-spacing: -0.02em; }
+    .pa-badge-facebook { background: #1877f2; font-family: Georgia, serif; font-size: 0.95rem; }
+    .pa-badge-native { background: #f4f4f5; color: #52525b; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .pa-pop .pa-heart-fill, .pa-pop .pa-burst, .pa-menu { animation: none; }
+    }
+</style>
+
+<script>
+    import { initPostActions } from '../scripts/post-actions';
+    initPostActions();
+</script>

@@ -10,7 +10,7 @@ import remarkMath from 'remark-math';
 import rehypeMathjax from 'rehype-mathjax';
 
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://blog.andreyis.com',
 
   output: 'static',
 

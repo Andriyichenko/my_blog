@@ -1,0 +1,2477 @@
+---
+title: "中間子とFeynman伝播関数"
+description: "Klein–Gordon 場の時間順序積から Feynman 伝播関数を導き，C_F 積分路と iε 処方による四次元表示，荷電中間子の粒子・反粒子の伝播，Green 関数としての性質（練習問題 3.3）までを丁寧に追う講義ノート。"
+pubDate: "2026-10-05"
+subcategory: "Quantum Mechanics"
+tags: ["Feynman伝播関数", "Klein-Gordon場", "量子場理論", "中間子論", "反粒子"]
+author: "Hermitian JIANG"
+---
+
+参考教科書：F. マンドル・G. ショー著，樺沢宇紀訳『[場の量子論〈第1巻〉量子電磁力学](https://runners.ritsumei.ac.jp/opac/opac_details/?reqCode=fromlist&lang=0&amode=11&bibid=TT41929556&opkey=B179126970893353&start=1&totalnum=104&listnum=0&place=&list_disp=20&list_sort=0&cmode=0&chk_st=0&check=00000000000000000000)』。教科書と照らし合わせながら，本記事を読み進めてください。
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">💡 この記事のメイン</h3>
+  <div className="text-amber-900">
+
+二点関数 $\langle0|\phi(x)\phi(x')|0\rangle=i\Delta^+(x-x')$ を中間子の伝播振幅として解釈し，時間順序積によって二つの時間順序をまとめて Feynman 伝播関数 $\Delta_F$ を得る。次に，複素 $k_0$ 平面の積分路 $C_F$（式 $(3.57)$）と分母の $+i\epsilon$（式 $(3.58)$）による Lorentz 共変な四次元表示を導く。最後に複素場（荷電中間子）での粒子・反粒子の解釈と，$(\Box+m^2)\Delta_F=-\delta^{(4)}$（練習問題 3.3）を確認する。
+
+  </div>
+</div>
+
+## 0. Klein–Gordon 場の最小限の復習
+
+以下では自然単位系
+
+$$
+c=\hbar=1
+$$
+
+を用いる。このとき
+
+$$
+x^0=t,
+\qquad
+\mu=\frac{mc}{\hbar}\ \longrightarrow\ m
+$$
+
+である。したがって，本ノートでは Klein–Gordon 方程式を
+
+$$
+(\Box+m^2)\phi(x)=0
+$$
+
+と書く。
+
+時空座標と運動量を
+
+$$
+x^\mu=(x^0,\mathbf{x}),
+\qquad
+k^\mu=(k^0,\mathbf{k})
+$$
+
+とし，計量は
+
+$$
+g_{\mu\nu}=\mathrm{diag}(1,-1,-1,-1)
+$$
+
+とする。したがって
+
+$$
+kx=k_\mu x^\mu
+=
+k_0x^0-\mathbf{k}\cdot\mathbf{x},
+\qquad
+k^2=k_\mu k^\mu
+=
+k_0^2-\mathbf{k}^2
+$$
+
+である。また
+
+$$
+\Box
+=
+\partial_\mu\partial^\mu
+=
+\frac{\partial^2}{\partial (x^0)^2}
+-
+\nabla^2.
+$$
+
+平面波 $e^{-ikx}$ に対して
+
+$$
+(\Box+m^2)e^{-ikx}
+=
+(-k^2+m^2)e^{-ikx}
+$$
+
+であるから，質量-波数条件は
+
+$$
+k^2=m^2.
+$$
+
+すなわち
+
+$$
+k_0=\pm\omega_{\mathbf{k}},
+\qquad
+\omega_{\mathbf{k}}
+=
+\sqrt{\mathbf{k}^2+m^2}.
+$$
+
+後で現れる分母は
+
+$$
+k^2-m^2
+=
+k_0^2-\mathbf{k}^2-m^2
+=
+k_0^2-\omega_{\mathbf{k}}^2
+=
+(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})
+$$
+
+である。したがって，複素 $k_0$ 平面では
+
+$$
+k_0=+\omega_{\mathbf{k}},
+\qquad
+k_0=-\omega_{\mathbf{k}}
+$$
+
+に二つの極がある。
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">⚠️ 注意</h3>
+  <div className="text-amber-900">
+    3.4節で重要になるのは，この二つの極をどのように避けるかである。
+  </div>
+</div>
+
+実 Klein–Gordon 場は
+
+$$
+\phi^\dagger(x)=\phi(x)
+$$
+
+を満たすスピン0のボース場であり，中性中間子場の模型として用いられる。
+
+自由な実 Klein–Gordon 場を，連続規格化で
+
+$$
+\phi(x)
+=
+\int \frac{d^3k}{(2\pi)^3}
+\frac{1}{\sqrt{2\omega_{\mathbf{k}}}}
+\left[
+a_{\mathbf{k}}e^{-ikx}
++
+a^\dagger_{\mathbf{k}}e^{ikx}
+\right]
+$$
+
+と展開する。ただし，この式の中では
+
+$$
+k_0=\omega_{\mathbf{k}}>0
+$$
+
+としている。したがって
+
+$$
+e^{-ikx}
+=
+e^{-i\omega_{\mathbf{k}}x^0+i\mathbf{k}\cdot\mathbf{x}},
+\qquad
+e^{ikx}
+=
+e^{i\omega_{\mathbf{k}}x^0-i\mathbf{k}\cdot\mathbf{x}}.
+$$
+
+生成演算子と消滅演算子は
+
+$$
+[a_{\mathbf{k}},a^\dagger_{\mathbf{p}}]
+=
+(2\pi)^3\delta^{(3)}(\mathbf{k}-\mathbf{p}),
+\qquad
+[a_{\mathbf{k}},a_{\mathbf{p}}]=0,
+\qquad
+[a^\dagger_{\mathbf{k}},a^\dagger_{\mathbf{p}}]=0
+$$
+
+を満たす。
+
+真空状態は
+
+$$
+a_{\mathbf{k}}|0\rangle=0
+\qquad
+(\text{任意の } \mathbf{k})
+$$
+
+によって定義される。この Hermite 共役より
+
+$$
+\langle 0|a^\dagger_{\mathbf{k}}=0
+$$
+
+である。
+
+二点関数を計算するときに必要なのは，次の真空期待値である。
+
+$$
+\langle0|a_{\mathbf{k}}a^\dagger_{\mathbf{p}}|0\rangle
+=
+(2\pi)^3\delta^{(3)}(\mathbf{k}-\mathbf{p}),
+$$
+
+一方で
+
+$$
+\langle0|a_{\mathbf{k}}a_{\mathbf{p}}|0\rangle
+=
+\langle0|a^\dagger_{\mathbf{k}}a_{\mathbf{p}}|0\rangle
+=
+\langle0|a^\dagger_{\mathbf{k}}a^\dagger_{\mathbf{p}}|0\rangle
+=
+0.
+$$
+
+したがって，$\langle0|\phi(x)\phi(x')|0\rangle$ を計算すると，場の展開に含まれる四種類の項のうち，
+
+$$
+a_{\mathbf{k}}a^\dagger_{\mathbf{p}}
+$$
+
+を含む項だけが残る。
+
+Mandl–Shaw の記法では，自然単位系において
+
+$$
+i\Delta^+(x-x')
+=
+\langle0|\phi(x)\phi(x')|0\rangle
+$$
+
+と定義する。したがって
+
+$$
+\Delta^+(x-x')
+=
+-i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-ik(x-x')}
+$$
+
+である。
+
+また，Feynman 伝播関数は時間順序積を用いて
+
+$$
+i\Delta_F(x-x')
+=
+\langle0|T\{\phi(x)\phi(x')\}|0\rangle
+$$
+
+と定義される。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">KEY POINT</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">ここからの主題</h3>
+
+ここまでが3.4節に入るための最小限の復習である。以後の主題は，時間順序積によって二つの時間順序をまとめ，Feynman 伝播関数 $\Delta_F$ を得ることである。
+
+</div>
+
+## 1. 中間子の伝播関数
+
+ここから，Klein–Gordon 場の二点関数を中間子の伝播振幅として解釈し，Feynman 伝播関数を導入する。以下でも自然単位系
+
+$$
+\hbar=c=1
+$$
+
+を用いる。
+
+### 1.1 $\Delta^+$ と二点関数
+
+実 Klein–Gordon 場を正振動数部分と負振動数部分に分けて
+
+$$
+\phi(x)=\phi^+(x)+\phi^-(x)
+$$
+
+と書く。ここで
+
+$$
+\phi^+(x)
+=
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{\sqrt{2\omega_{\mathbf{k}}}}
+a_{\mathbf{k}}e^{-ikx},
+$$
+
+$$
+\phi^-(x)
+=
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{\sqrt{2\omega_{\mathbf{k}}}}
+a^\dagger_{\mathbf{k}}e^{ikx}.
+$$
+
+ただし
+
+$$
+\omega_{\mathbf{k}}=\sqrt{\mathbf{k}^2+m^2},
+\qquad
+k_0=\omega_{\mathbf{k}}>0
+$$
+
+である。
+
+ここで注意すべきことは，$\phi^+(x)$ は正振動数部分であり，消滅演算子 $a_{\mathbf{k}}$ を含むのに対し，$\phi^-(x)$ は負振動数部分であり，生成演算子 $a^\dagger_{\mathbf{k}}$ を含む。
+
+Mandl–Shaw では，$\Delta^+$ は次のように定義される。
+
+$$
+\begin{aligned}
+i\Delta^+(x-x')
+&=
+\langle0|[\phi^+(x),\phi^-(x')]|0\rangle
+\\
+&=
+\langle0|\phi^+(x)\phi^-(x')|0\rangle
+\\
+&=
+\langle0|\phi(x)\phi(x')|0\rangle .
+\end{aligned}
+\tag{3.51}
+$$
+
+この式を実際に展開して確認する。まず，
+
+$$
+\langle0|\phi(x)\phi(x')|0\rangle
+=
+\langle0|
+\left(\phi^+(x)+\phi^-(x)\right)
+\left(\phi^+(x')+\phi^-(x')\right)
+|0\rangle
+$$
+
+である。右辺には四つの項がある。
+
+$$
+\langle0|\phi^+(x)\phi^+(x')|0\rangle=0,
+$$
+
+$$
+\langle0|\phi^-(x)\phi^+(x')|0\rangle=0,
+$$
+
+$$
+\langle0|\phi^-(x)\phi^-(x')|0\rangle=0.
+$$
+
+したがって，残るのは
+
+$$
+\langle0|\phi^+(x)\phi^-(x')|0\rangle
+$$
+
+だけである。
+
+実際に場の展開式を代入すると，
+
+$$
+\langle0|\phi^+(x)\phi^-(x')|0\rangle
+=
+\int\frac{d^3k}{(2\pi)^3}
+\int\frac{d^3p}{(2\pi)^3}
+\frac{
+e^{-ikx}e^{ipx'}
+}{
+\sqrt{2\omega_{\mathbf{k}}}\sqrt{2\omega_{\mathbf{p}}}
+}
+\langle0|a_{\mathbf{k}}a^\dagger_{\mathbf{p}}|0\rangle .
+$$
+
+ここで生成・消滅演算子の交換関係
+
+$$
+[a_{\mathbf{k}},a^\dagger_{\mathbf{p}}]
+=
+(2\pi)^3\delta^{(3)}(\mathbf{k}-\mathbf{p})
+$$
+
+と
+
+$$
+a_{\mathbf{k}}|0\rangle=0
+$$
+
+を用いると，
+
+$$
+\langle0|a_{\mathbf{k}}a^\dagger_{\mathbf{p}}|0\rangle
+=
+(2\pi)^3\delta^{(3)}(\mathbf{k}-\mathbf{p})
+$$
+
+である。したがって
+
+$$
+\langle0|\phi^+(x)\phi^-(x')|0\rangle
+=
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-ikx}e^{ikx'} .
+$$
+
+すなわち
+
+$$
+\langle0|\phi(x)\phi(x')|0\rangle
+=
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-ik(x-x')}.
+$$
+
+式 $(3.51)$ の定義と比較すると，
+
+$$
+\Delta^+(x-x')
+=
+-i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-ik(x-x')}
+$$
+
+である。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-5 my-6 shadow-sm">
+  <h3 className="text-slate-800 font-bold text-lg m-0 mb-3">解釈</h3>
+
+$\phi^-(x')$ は生成演算子を含むので，点 $x'$ において中間子を生成する。一方，$\phi^+(x)$ は消滅演算子を含むので，点 $x$ において中間子を消滅させる。したがって，$x^0>x'^0$ の場合，
+
+$$
+\langle0|\phi(x)\phi(x')|0\rangle
+$$
+
+は，点 $x'$ で生成された中間子が点 $x$ まで伝播して，そこで消滅する振幅として解釈できる。
+
+</div>
+
+### 1.2 時間順序化積
+
+次に，時間順序化積を定義する。二つの場の演算子に対して，時間の遅い演算子が左側に来るように並べ替える。
+
+$$
+T\{\phi(x)\phi(x')\}
+=
+\begin{cases}
+\phi(x)\phi(x'), & t>t',\\
+\phi(x')\phi(x), & t'>t.
+\end{cases}
+\tag{3.52}
+$$
+
+ここで
+
+$$
+t=x^0,
+\qquad
+t'=x'^0
+$$
+
+である。
+
+### 1.3 段差関数による表示
+
+段差関数を
+
+$$
+\theta(t)
+=
+\begin{cases}
+1, & t>0,\\
+0, & t<0
+\end{cases}
+\tag{3.53}
+$$
+
+と定義する。
+
+この $\theta$ 関数を用いると，時間順序化積は
+
+$$
+T\{\phi(x)\phi(x')\}
+=
+\theta(t-t')\phi(x)\phi(x')
++
+\theta(t'-t)\phi(x')\phi(x).
+\tag{3.54}
+$$
+
+この式は，式 $(3.52)$ の場合分けを一つの式にまとめたものである。実際，$t>t'$ のとき
+
+$$
+\theta(t-t')=1,
+\qquad
+\theta(t'-t)=0
+$$
+
+なので
+
+$$
+T\{\phi(x)\phi(x')\}
+=
+\phi(x)\phi(x')
+$$
+
+となる。一方，$t'<t$ ではなく $t'>t$ のとき
+
+$$
+\theta(t-t')=0,
+\qquad
+\theta(t'-t)=1
+$$
+
+なので
+
+$$
+T\{\phi(x)\phi(x')\}
+=
+\phi(x')\phi(x)
+$$
+
+となる。
+
+### 1.4 Feynman 伝播関数の定義
+
+Feynman の $\Delta_F$ 関数は，実 Klein–Gordon 場同士の時間順序積の真空期待値によって定義される。
+
+$$
+i\Delta_F(x-x')
+=
+\langle0|T\{\phi(x)\phi(x')\}|0\rangle .
+\tag{3.55}
+$$
+
+式 $(3.54)$ をこの定義に代入すると，
+
+$$
+i\Delta_F(x-x')
+=
+\theta(t-t')
+\langle0|\phi(x)\phi(x')|0\rangle
++
+\theta(t'-t)
+\langle0|\phi(x')\phi(x)|0\rangle .
+$$
+
+ここで式 $(3.51)$ より
+
+$$
+\langle0|\phi(x)\phi(x')|0\rangle
+=
+i\Delta^+(x-x')
+$$
+
+である。
+
+一方，
+
+$$
+\langle0|\phi(x')\phi(x)|0\rangle
+=
+i\Delta^+(x'-x)
+$$
+
+である。Mandl–Shaw の記法では
+
+$$
+\Delta^-(x-x')
+=
+-\Delta^+(x'-x)
+$$
+
+であるから，
+
+$$
+\langle0|\phi(x')\phi(x)|0\rangle
+=
+-i\Delta^-(x-x')
+$$
+
+と書ける。
+
+したがって
+
+$$
+i\Delta_F(x-x')
+=
+i\theta(t-t')\Delta^+(x-x')
+-
+i\theta(t'-t)\Delta^-(x-x').
+$$
+
+両辺を $i$ で割ると，
+
+$$
+\Delta_F(x-x')
+=
+\theta(t-t')\Delta^+(x-x')
+-
+\theta(t'-t)\Delta^-(x-x').
+$$
+
+ここで以後，$x-x'$ を改めて $x$ と書くと，
+
+$$
+\Delta_F(x)
+=
+\theta(t)\Delta^+(x)
+-
+\theta(-t)\Delta^-(x).
+\tag{3.56a}
+$$
+
+これを場合分けで書くと，
+
+$$
+\Delta_F(x)
+=
+\begin{cases}
+\Delta^+(x), & t\geq 0,\\
+-\Delta^-(x), & t<0,\\
+\pm \Delta^\pm (x), & t\gtrless  0.
+\end{cases}
+\tag{3.56b}
+$$
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">KEY POINT</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">二つの時間順序をまとめる</h3>
+
+式 $(3.56a)$ は，二つの時間順序を一つにまとめた式である。$t>0$ では，中間子が $0$ から $x$ へ伝播する振幅 $\Delta^+(x)$ が現れる。一方，$t<0$ では，時間順序が逆になり，$-\Delta^-(x)$ が現れる。これらをまとめたものが Feynman 伝播関数 $\Delta_F(x)$ である。
+
+</div>
+
+### 1.5 物理的な意味
+
+$t>t'$ の場合，式 $(3.55)$ の真空期待値は
+
+$$
+\langle0|\phi(x)\phi(x')|0\rangle
+$$
+
+となる。これは，点 $x'$ において中間子が生成され，点 $x$ まで伝播し，そこで消滅する過程を表す振幅と考えられる。
+
+一方，$t'>t$ の場合には
+
+$$
+\langle0|\phi(x')\phi(x)|0\rangle
+$$
+
+となる。この場合は，点 $x$ において中間子が生成され，点 $x'$ まで伝播し，そこで消滅する過程を表す。
+
+したがって，Feynman 伝播関数は単に一つの時間順序だけを表すのではなく，二つの可能な時間順序を時間順序積によってまとめたものである。
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">⚠️ 注意</h3>
+  <div className="text-amber-900">
+
+Feynman 伝播関数に対応する内部線は，古典的な粒子の軌道そのものではない。内部線は，二点間を結ぶ中間子の伝播振幅を表すものである。特に，空間的に離れた二点では時間順序が慣性系に依存するため，二つの時間順序をまとめた $\Delta_F$ を用いる必要がある。
+
+  </div>
+</div>
+
+### 1.6 Feynman グラフによる表し方
+
+式 $(3.55)$ の真空期待値は，中間子の Feynman 伝播関数である。これを図式的に表すと，図 3.2 のように，中間子の伝播を破線で表すことができる。
+
+$t>t'$ の場合には，
+
+$$
+\langle0|\phi(x)\phi(x')|0\rangle
+$$
+
+が現れ，これは点 $x'$ で中間子が生成され，点 $x$ まで伝播し，そこで消滅する過程として解釈できる。
+
+一方，$t'>t$ の場合には，
+
+$$
+\langle0|\phi(x')\phi(x)|0\rangle
+$$
+
+が現れ，これは点 $x$ で中間子が生成され，点 $x'$ まで伝播し，そこで消滅する過程として解釈できる。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">模式図（図 3.2）：中間子の伝播</h3>
+  <pre className="text-sm leading-relaxed bg-white border border-slate-200 rounded p-4 overflow-x-auto">{`time  ───────────────────────────▶
+
+(a) t' < t :    x' ● - - - - - - - ▶ ● x
+                 (生成)              (消滅)
+
+(b) t' > t :    x  ● - - - - - - - ▶ ● x'
+                 (生成)              (消滅)`}</pre>
+
+図 3.2 に対応する模式図：破線は中間子の伝播を表す。（a）$t'<t$ では $x'$ から $x$ へ，（b）$t'>t$ では $x$ から $x'$ へ破線の矢印が向く。
+
+</div>
+
+この図では，破線の矢印は「どちらの点で生成され，どちらの点で消滅するか」を表している。ただし，これはあくまで時間順序を固定した座標系での表し方である。
+
+次に，この伝播関数がどのような物理過程に現れるかを見るために，核子–核子散乱を考える。始状態と終状態には二つの核子だけが存在し，実在する中間子は存在しない。相互作用は，核子間で仮想中間子が交換される過程として表される。
+
+最も単純な寄与は，一方の核子が中間子を放出し，他方の核子がそれを吸収する1-中間子交換である。時間順序を固定して描くと，図 3.3 のように二通りの図が現れる。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">模式図（図 3.3）：時間順序を固定した 1-中間子交換</h3>
+  <pre className="text-sm leading-relaxed bg-white border border-slate-200 rounded p-4 overflow-x-auto">{`time  ─────────────────────────────▶
+
+(a) t' < t                         (b) t' > t
+
+nucleon ───▶ x' ● ───▶            nucleon ───▶ x' ● ───▶
+                ╎                                  ▲
+                ╎                                  ╎
+                ▼                                  ╎
+nucleon ───▶  x ● ───▶            nucleon ───▶  x ● ───▶`}</pre>
+
+図 3.3 に対応する模式図：実線は核子，破線は交換される中間子を表す。（a）$t'<t$ では中間子は $x'$ で放出され $x$ で吸収され，（b）$t'>t$ では $x$ で放出され $x'$ で吸収される。
+
+</div>
+
+ここで重要なのは，図 3.3 の二つの図が，単に別々の古典的過程を表しているわけではない。実際の計算では，中間子の放出点と吸収点は任意の時空点をとることができるため，頂点 $x$ と $x'$ に関して全時空にわたる積分を行うことになる。
+
+さらに，相対論的に重要な問題がある。もし $x$ と $x'$ が空間的に隔たっているならば，
+
+$$
+(x-x')^2<0
+$$
+
+である。このとき，二つの事象の時間順序は Lorentz 不変ではない。つまり，ある慣性系では
+
+$$
+t>t'
+$$
+
+であっても，別の慣性系では
+
+$$
+t'>t
+$$
+
+と見えることがある。
+
+図で言えば，時空図において時間軸の向きを Lorentz 変換によって傾けると，同じ二つの点 $x$ と $x'$ に対して，「どちらが先か」が入れ替わって見える場合がある。したがって，図 3.3 のように
+
+$$
+t>t'
+\quad \text{または} \quad
+t'>t
+$$
+
+という条件で二つの過程を分ける描き方は，Lorentz 共変な表し方ではない。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">模式図：空間的に隔たった二点と慣性系</h3>
+  <div className="text-slate-700 flex justify-center">
+    <svg viewBox="0 0 320 230" width="320" height="230" role="img" aria-label="空間的に隔たった二点 x, x' と傾いた時間軸">
+      <defs>
+        <marker id="fp-arrow-st" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+        </marker>
+      </defs>
+      <line x1="20" y1="190" x2="300" y2="190" stroke="currentColor" strokeWidth="1.5" markerEnd="url(#fp-arrow-st)" />
+      <text x="304" y="194" fontSize="14" fill="currentColor">x</text>
+      <line x1="140" y1="200" x2="140" y2="25" stroke="currentColor" strokeWidth="1.5" markerEnd="url(#fp-arrow-st)" />
+      <text x="136" y="18" fontSize="14" fill="currentColor">t</text>
+      <line x1="140" y1="200" x2="60" y2="28" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#fp-arrow-st)" />
+      <text x="48" y="22" fontSize="14" fill="#64748b">t̃</text>
+      <line x1="80" y1="120" x2="200" y2="62" stroke="currentColor" strokeWidth="1.5" strokeDasharray="5 4" />
+      <circle cx="80" cy="120" r="4" fill="currentColor" />
+      <text x="64" y="124" fontSize="14" fill="currentColor">x</text>
+      <circle cx="200" cy="62" r="4" fill="currentColor" />
+      <text x="208" y="66" fontSize="14" fill="currentColor">x'</text>
+    </svg>
+  </div>
+
+空間的分離では，時間順序が慣性系に依存する。元の時間軸 $t$ では $x'$ の方が遅いが，Lorentz 変換で傾けた時間軸 $\tilde t$ から見ると順序が入れ替わりうる。
+
+</div>
+
+この問題を避けるためには，すでに式 $(3.55)$ で定義した Feynman 伝播関数が用いられる。
+
+$$
+i\Delta_F(x-x')
+=
+\langle0|T\{\phi(x)\phi(x')\}|0\rangle .
+$$
+
+つまり，$\Delta_F$ は
+
+$$
+t>t'
+$$
+
+の場合の寄与と
+
+$$
+t'>t
+$$
+
+の場合の寄与を，時間順序積によって一つにまとめた伝播関数である。
+
+この二つの時間順序をまとめたものを，単一の Feynman グラフとして表すと，図 3.4 のようになる。この図では，中間子の内部線には時間順序に関する矢印を付けない。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">模式図（図 3.4）：1-中間子交換の Feynman グラフ</h3>
+  <pre className="text-sm leading-relaxed bg-white border border-slate-200 rounded p-4 overflow-x-auto">{`time  ──────────────────────▶
+
+nucleon ───▶ x' ● ───▶
+                ╎
+                ╎      (矢印なしの破線 = Δ_F(x - x'))
+                ╎
+nucleon ───▶  x ● ───▶`}</pre>
+
+図 3.4 に対応する Feynman グラフ：二つの頂点 $x$, $x'$ を結ぶ中間子の内部線（破線）には，時間順序に関する矢印を付けない。
+
+</div>
+
+この Feynman グラフでは，内部の破線は「ある時刻に中間子が右向きに進む」という古典的な軌道を表しているのではない。破線は，二つの頂点 $x$ と $x'$ を結ぶ Feynman 伝播関数を表している。
+
+特に，$x$ と $x'$ が空間的に隔たっている場合，内部線を「中間子が二点間を光速を超えて直接伝播した」と解釈してはならない。内部線は，量子場の二点関数，すなわち伝播振幅を表したものである。
+
+以上の議論から，次に必要になるのは，$\Delta_F(x)$ をより Lorentz 共変な形で書くことである。これまで用いた表示は
+
+$$
+\Delta^+(x)
+=
+-i\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-ikx}
+$$
+
+のように三次元運動量積分で書かれており，時間順序も $\theta(t)$ によって分けていた。この表示は物理的な意味を理解するには便利であるが，Lorentz 共変性が明らかではない。
+
+そこで次に，$\Delta_F(x)$ を四次元運動量積分
+
+$$
+\int d^4k
+$$
+
+で表す。
+
+## 2. $C_F$ 積分路表示と式 $(3.57)$
+
+これまで得た Feynman 伝播関数は，
+
+$$
+\Delta_F(x)
+=
+\begin{cases}
+\Delta^+(x), & x^0\geq 0,\\
+-\Delta^-(x), & x^0<0
+\end{cases}
+$$
+
+という形で書かれていた。この表示は時間順序の意味を理解するには便利であるが，Lorentz 共変性がない。
+
+そこで，$\Delta_F(x)$ を四次元運動量積分として表す。Mandl–Shaw では，Feynman 伝播関数を次のように書く。
+
+$$
+\Delta_F(x)
+=
+\frac{1}{(2\pi)^4}
+\int_{C_F} d^4k\,
+\frac{e^{-ikx}}{k^2-m^2}.
+\tag{3.57}
+$$
+
+ここで
+
+$$
+d^4k=dk_0\,d^3k
+$$
+
+であり，$C_F$ は複素 $k_0$ 平面における積分路を表す。
+
+分母は
+
+$$
+k^2-m^2
+=
+k_0^2-\mathbf{k}^2-m^2
+=
+k_0^2-\omega_{\mathbf{k}}^2
+$$
+
+である。ただし分散関係
+
+$$
+\omega_{\mathbf{k}}
+=
+\sqrt{\mathbf{k}^2+m^2}.
+$$
+
+したがって
+
+$$
+k^2-m^2
+=
+(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})
+$$
+
+となり，極は
+
+$$
+k_0=+\omega_{\mathbf{k}},
+\qquad
+k_0=-\omega_{\mathbf{k}}
+$$
+
+にある。
+
+$C_F$ 積分路は，正エネルギー極 $+\omega_{\mathbf{k}}$ を下側に避け，負エネルギー極 $-\omega_{\mathbf{k}}$ を上側に避けるように取る。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">模式図：複素 $k_0$ 平面と積分路 $C_F$</h3>
+  <div className="text-slate-700 flex justify-center">
+    <svg viewBox="0 0 400 220" width="400" height="220" style={{ maxWidth: '100%', height: 'auto' }} role="img" aria-label="複素 k0 平面における積分路 C_F">
+      <defs>
+        <marker id="fp-arrow-cf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+        </marker>
+        <marker id="fp-arrow-cf-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#2563eb" />
+        </marker>
+      </defs>
+      <line x1="15" y1="110" x2="380" y2="110" stroke="currentColor" strokeWidth="1" markerEnd="url(#fp-arrow-cf)" />
+      <text x="330" y="100" fontSize="13" fill="currentColor">Re k₀</text>
+      <line x1="200" y1="205" x2="200" y2="15" stroke="currentColor" strokeWidth="1" markerEnd="url(#fp-arrow-cf)" />
+      <text x="208" y="20" fontSize="13" fill="currentColor">Im k₀</text>
+      <path d="M 30 110 L 95 110 A 18 18 0 0 0 131 110 L 272 110 A 18 18 0 0 1 308 110 L 365 110" fill="none" stroke="#2563eb" strokeWidth="2.5" />
+      <line x1="55" y1="110" x2="65" y2="110" stroke="#2563eb" strokeWidth="2.5" markerEnd="url(#fp-arrow-cf-blue)" />
+      <line x1="160" y1="110" x2="170" y2="110" stroke="#2563eb" strokeWidth="2.5" markerEnd="url(#fp-arrow-cf-blue)" />
+      <line x1="330" y1="110" x2="340" y2="110" stroke="#2563eb" strokeWidth="2.5" markerEnd="url(#fp-arrow-cf-blue)" />
+      <circle cx="113" cy="110" r="4" fill="currentColor" />
+      <text x="70" y="98" fontSize="13" fill="currentColor">−ωₖ</text>
+      <circle cx="290" cy="110" r="4" fill="currentColor" />
+      <text x="290" y="140" fontSize="13" fill="currentColor">+ωₖ</text>
+      <text x="230" y="80" fontSize="14" fill="#2563eb">C_F</text>
+    </svg>
+  </div>
+
+$C_F$：積分路は $-\omega_{\mathbf{k}}$ の所で下側を回り込み，$+\omega_{\mathbf{k}}$ の所で上側を回り込む（極 $-\omega_{\mathbf{k}}$ は積分路の上側，極 $+\omega_{\mathbf{k}}$ は積分路の下側に残る）。
+
+</div>
+
+<div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 rounded-r shadow-sm">
+  <h3 className="text-amber-800 font-bold text-lg m-0 mb-2">⚠️ 注意</h3>
+  <div className="text-amber-900">
+
+上の図で積分路が極をどちら側に避けるかを見ると，極そのものは
+
+$$
++\omega_{\mathbf{k}}\ \text{が積分路の下側},
+\qquad
+-\omega_{\mathbf{k}}\ \text{が積分路の上側}
+$$
+
+にあることになる。したがって，$x^0>0$ で下半平面に閉じると正エネルギー極だけを拾い，$x^0<0$ で上半平面に閉じると負エネルギー極だけを拾う。
+
+  </div>
+</div>
+
+したがって $k_0$ 積分だけに注目すると，
+
+$$
+\int_{C_F} dk_0\,
+\frac{e^{-ik_0x^0}}
+{(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})}
+$$
+
+を評価すればよい。
+
+### 2.1 $x^0>0$ の場合
+
+まず $x^0>0$ の場合を考える。このとき
+
+$$
+e^{-ik_0x^0}
+$$
+
+は，下半円で収束する。実際，
+
+$$
+k_0=a-ib
+\qquad
+(b>0)
+$$
+
+とおくと，
+
+$$
+e^{-ik_0x^0}
+=
+e^{-i(a-ib)x^0}
+=
+e^{-iax^0}e^{-bx^0}
+$$
+
+となり，$x^0>0$ では下半円で減衰する。
+
+したがって，積分路を下半円で閉じる。この閉曲線の向きは時計回りであるから，留数定理により
+
+$$
+\int_{C_F} dk_0\,
+\frac{e^{-ik_0x^0}}
+{(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})}
+=
+-2\pi i\,
+\operatorname*{Res}_{k_0=\omega_{\mathbf{k}}}
+\frac{e^{-ik_0x^0}}
+{(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})}.
+$$
+
+正エネルギー極における留数は
+
+$$
+\operatorname*{Res}_{k_0=\omega_{\mathbf{k}}}
+\frac{e^{-ik_0x^0}}
+{(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})}
+=
+\lim_{k_0\to\omega_{\mathbf{k}}}
+\frac{e^{-ik_0x^0}}{k_0+\omega_{\mathbf{k}}}
+=
+\frac{e^{-i\omega_{\mathbf{k}}x^0}}
+{2\omega_{\mathbf{k}}}.
+$$
+
+したがって
+
+$$
+\int_{C_F} dk_0\,
+\frac{e^{-ik_0x^0}}
+{k_0^2-\omega_{\mathbf{k}}^2}
+=
+-2\pi i\,
+\frac{e^{-i\omega_{\mathbf{k}}x^0}}
+{2\omega_{\mathbf{k}}}.
+$$
+
+これを式 $(3.57)$ に戻すと，
+
+$$
+\Delta_F(x)
+=
+\frac{1}{(2\pi)^4}
+\int d^3k\,
+e^{i\mathbf{k}\cdot\mathbf{x}}
+\left(
+-2\pi i\,
+\frac{e^{-i\omega_{\mathbf{k}}x^0}}
+{2\omega_{\mathbf{k}}}
+\right).
+$$
+
+すなわち
+
+$$
+\Delta_F(x)
+=
+-i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-i\omega_{\mathbf{k}}x^0+i\mathbf{k}\cdot\mathbf{x}}.
+$$
+
+ここで
+
+$$
+e^{-ikx}
+=
+e^{-i\omega_{\mathbf{k}}x^0+i\mathbf{k}\cdot\mathbf{x}}
+$$
+
+であるから，
+
+$$
+\Delta_F(x)
+=
+-i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-ikx}.
+$$
+
+これは前に得た
+
+$$
+\Delta^+(x)
+=
+-i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-ikx}
+$$
+
+そのものである。したがって
+
+$$
+x^0>0
+\qquad\Longrightarrow\qquad
+\Delta_F(x)=\Delta^+(x).
+$$
+
+### 2.2 $x^0<0$ の場合
+
+次に $x^0<0$ の場合を考える。このとき
+
+$$
+e^{-ik_0x^0}
+$$
+
+は上半円で収束する。実際，
+
+$$
+k_0=a+ib
+\qquad
+(b>0)
+$$
+
+とおくと，
+
+$$
+e^{-ik_0x^0}
+=
+e^{-i(a+ib)x^0}
+=
+e^{-iax^0}e^{bx^0}
+$$
+
+であり，$x^0<0$ なので $e^{bx^0}$ は減衰する。
+
+したがって，積分路を上半円で閉じる。この場合，閉曲線の向きは反時計回りである。上半円内にあるのは負エネルギー極
+
+$$
+k_0=-\omega_{\mathbf{k}}
+$$
+
+である。
+
+したがって
+
+$$
+\int_{C_F} dk_0\,
+\frac{e^{-ik_0x^0}}
+{(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})}
+=
+2\pi i\,
+\operatorname*{Res}_{k_0=-\omega_{\mathbf{k}}}
+\frac{e^{-ik_0x^0}}
+{(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})}.
+$$
+
+負エネルギー極における留数は
+
+$$
+\operatorname*{Res}_{k_0=-\omega_{\mathbf{k}}}
+\frac{e^{-ik_0x^0}}
+{(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})}
+=
+\lim_{k_0\to-\omega_{\mathbf{k}}}
+\frac{e^{-ik_0x^0}}{k_0-\omega_{\mathbf{k}}}
+=
+-\frac{e^{i\omega_{\mathbf{k}}x^0}}
+{2\omega_{\mathbf{k}}}.
+$$
+
+したがって
+
+$$
+\int_{C_F} dk_0\,
+\frac{e^{-ik_0x^0}}
+{k_0^2-\omega_{\mathbf{k}}^2}
+=
+2\pi i
+\left(
+-\frac{e^{i\omega_{\mathbf{k}}x^0}}
+{2\omega_{\mathbf{k}}}
+\right).
+$$
+
+これを式 $(3.57)$ に戻すと，
+
+$$
+\Delta_F(x)
+=
+\frac{1}{(2\pi)^4}
+\int d^3k\,
+e^{i\mathbf{k}\cdot\mathbf{x}}
+\left[
+2\pi i
+\left(
+-\frac{e^{i\omega_{\mathbf{k}}x^0}}
+{2\omega_{\mathbf{k}}}
+\right)
+\right].
+$$
+
+したがって
+
+$$
+\Delta_F(x)
+=
+-i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{i\omega_{\mathbf{k}}x^0+i\mathbf{k}\cdot\mathbf{x}}.
+$$
+
+ここで積分変数を
+
+$$
+\mathbf{k}\to-\mathbf{k}
+$$
+
+と置き換えると，
+
+$$
+d^3k
+$$
+
+と
+
+$$
+\omega_{\mathbf{k}}=\sqrt{\mathbf{k}^2+m^2}
+$$
+
+は不変であるから，
+
+$$
+\Delta_F(x)
+=
+-i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{i\omega_{\mathbf{k}}x^0-i\mathbf{k}\cdot\mathbf{x}}.
+$$
+
+すなわち
+
+$$
+\Delta_F(x)
+=
+-i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{ikx}.
+$$
+
+一方，Mandl–Shaw の記法では
+
+$$
+\Delta^-(x)
+=
+i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{ikx}
+$$
+
+であるから，
+
+$$
+\Delta_F(x)
+=
+-\Delta^-(x).
+$$
+
+したがって
+
+$$
+x^0<0
+\qquad\Longrightarrow\qquad
+\Delta_F(x)=-\Delta^-(x).
+$$
+
+以上より，式 $(3.57)$ は
+
+$$
+\Delta_F(x)
+=
+\begin{cases}
+\Delta^+(x), & x^0>0,\\
+-\Delta^-(x), & x^0<0
+\end{cases}
+$$
+
+を再現する。これは式 $(3.56b)$ と一致する。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">RESULT</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">式 $(3.57)$ の役割</h3>
+
+式 $(3.57)$ の役割は，時間順序で場合分けされた Feynman 伝播関数を，複素 $k_0$ 平面上の積分路 $C_F$ を用いて一つの四次元運動量積分として書くことである。$C_F$ の取り方により，$x^0>0$ では正エネルギー極が，$x^0<0$ では負エネルギー極が選ばれる。
+
+</div>
+
+次に，この積分路の情報を分母に含まれる微小虚数 $i\epsilon$ によって表し，積分路は実軸に戻すことができる。
+
+### 2.3 式 (3.58)
+
+式 $(3.57)$ では，Feynman 伝播関数を
+
+$$
+\Delta_F(x)
+=
+\frac{1}{(2\pi)^4}
+\int_{C_F} d^4k\,
+\frac{e^{-ikx}}{k^2-m^2}
+$$
+
+と書いた。この式では，積分路 $C_F$ が
+
+$$
+k_0=+\omega_{\mathbf{k}},
+\qquad
+k_0=-\omega_{\mathbf{k}}
+$$
+
+という二つの極をどちら側に避けるかを指定していた。
+
+今回は積分路ではなく分母の中の微小虚数によって表すことができる。
+
+Feynman の処方では，正エネルギー極を下半平面へ，負エネルギー極を上半平面へ少しずらす。すなわち，
+
+$$
++\omega_{\mathbf{k}}
+\longrightarrow
++\omega_{\mathbf{k}}-i\eta,
+$$
+
+$$
+-\omega_{\mathbf{k}}
+\longrightarrow
+-\omega_{\mathbf{k}}+i\eta
+$$
+
+とする。ただし
+
+$$
+\eta>0
+$$
+
+は微小正定数である。
+
+もとの分母は
+
+$$
+k^2-m^2
+=
+(k_0-\omega_{\mathbf{k}})(k_0+\omega_{\mathbf{k}})
+$$
+
+であった。極を上のようにずらすと，分母は
+
+$$
+(k_0-\omega_{\mathbf{k}}+i\eta)
+(k_0+\omega_{\mathbf{k}}-i\eta)
+$$
+
+になる。
+
+ここで，この分母を少し変形する。
+
+$$
+(k_0-\omega_{\mathbf{k}}+i\eta)
+(k_0+\omega_{\mathbf{k}}-i\eta)
+=
+\left[k_0-(\omega_{\mathbf{k}}-i\eta)\right]
+\left[k_0+(\omega_{\mathbf{k}}-i\eta)\right].
+$$
+
+したがって
+
+$$
+(k_0-\omega_{\mathbf{k}}+i\eta)
+(k_0+\omega_{\mathbf{k}}-i\eta)
+=
+k_0^2-(\omega_{\mathbf{k}}-i\eta)^2.
+$$
+
+さらに
+
+$$
+(\omega_{\mathbf{k}}-i\eta)^2
+=
+\omega_{\mathbf{k}}^2
+-
+2i\omega_{\mathbf{k}}\eta
+-
+\eta^2
+$$
+
+であるから，
+
+$$
+k_0^2-(\omega_{\mathbf{k}}-i\eta)^2
+=
+k_0^2-\omega_{\mathbf{k}}^2
++
+2i\omega_{\mathbf{k}}\eta
++
+\eta^2.
+$$
+
+$\eta^2$ を無視すると
+
+$$
+(k_0-\omega_{\mathbf{k}}+i\eta)
+(k_0+\omega_{\mathbf{k}}-i\eta)
+\simeq
+k_0^2-\omega_{\mathbf{k}}^2
++
+2i\omega_{\mathbf{k}}\eta.
+$$
+
+ここで
+
+$$
+\omega_{\mathbf{k}}^2
+=
+\mathbf{k}^2+m^2
+$$
+
+であるから，
+
+$$
+k_0^2-\omega_{\mathbf{k}}^2
+=
+k_0^2-\mathbf{k}^2-m^2
+=
+k^2-m^2.
+$$
+
+したがって
+
+$$
+(k_0-\omega_{\mathbf{k}}+i\eta)
+(k_0+\omega_{\mathbf{k}}-i\eta)
+\simeq
+k^2-m^2
++
+2i\omega_{\mathbf{k}}\eta.
+$$
+
+最後に
+
+$$
+\epsilon
+=
+2\omega_{\mathbf{k}}\eta
+$$
+
+と書くと，
+
+$$
+(k_0-\omega_{\mathbf{k}}+i\eta)
+(k_0+\omega_{\mathbf{k}}-i\eta)
+\simeq
+k^2-m^2+i\epsilon.
+$$
+
+したがって，実軸上の $k_0$ 積分として
+
+$$
+\Delta_F(x)
+=
+\frac{1}{(2\pi)^4}
+\int d^4k\,
+\frac{e^{-ikx}}{k^2-m^2+i\epsilon}
+\tag{3.58}
+$$
+
+と書ける。
+
+この式において，分母
+
+$$
+k^2-m^2+i\epsilon
+$$
+
+の零点は厳密には
+
+$$
+k_0^2-\omega_{\mathbf{k}}^2+i\epsilon=0
+$$
+
+によって決まる。すなわち
+
+$$
+k_0
+=
+\pm\sqrt{\omega_{\mathbf{k}}^2-i\epsilon}.
+$$
+
+$\epsilon$ が無限小であることを用いると，
+
+$$
+\sqrt{\omega_{\mathbf{k}}^2-i\epsilon}
+\simeq
+\omega_{\mathbf{k}}-\frac{i\epsilon}{2\omega_{\mathbf{k}}}.
+$$
+
+したがって二つの極は
+
+$$
+k_0
+\simeq
++\omega_{\mathbf{k}}
+-
+\frac{i\epsilon}{2\omega_{\mathbf{k}}},
+$$
+
+$$
+k_0
+\simeq
+-\omega_{\mathbf{k}}
++
+\frac{i\epsilon}{2\omega_{\mathbf{k}}}
+$$
+
+に移動する。
+
+つまり，式 $(3.58)$ の分母
+
+$$
+k^2-m^2+i\epsilon
+$$
+
+は，
+
+$$
++\omega_{\mathbf{k}}
+\quad\text{の極を下半平面へ，}
+$$
+
+$$
+-\omega_{\mathbf{k}}
+\quad\text{の極を上半平面へ}
+$$
+
+ずらしている。
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">模式図：$i\epsilon$ 処方による極の移動</h3>
+  <div className="text-slate-700 flex justify-center">
+    <svg viewBox="0 0 400 220" width="400" height="220" style={{ maxWidth: '100%', height: 'auto' }} role="img" aria-label="実軸上の積分と上下にずらした極">
+      <defs>
+        <marker id="fp-arrow-ie" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+        </marker>
+        <marker id="fp-arrow-ie-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#2563eb" />
+        </marker>
+      </defs>
+      <line x1="200" y1="205" x2="200" y2="15" stroke="currentColor" strokeWidth="1" markerEnd="url(#fp-arrow-ie)" />
+      <text x="208" y="20" fontSize="13" fill="currentColor">Im k₀</text>
+      <line x1="15" y1="110" x2="372" y2="110" stroke="#2563eb" strokeWidth="2.5" markerEnd="url(#fp-arrow-ie-blue)" />
+      <text x="330" y="100" fontSize="13" fill="currentColor">Re k₀</text>
+      <line x1="113" y1="80" x2="113" y2="110" stroke="currentColor" strokeWidth="1" strokeDasharray="4 3" />
+      <circle cx="113" cy="80" r="4" fill="currentColor" />
+      <text x="40" y="66" fontSize="13" fill="currentColor">−ωₖ + iη</text>
+      <line x1="290" y1="140" x2="290" y2="110" stroke="currentColor" strokeWidth="1" strokeDasharray="4 3" />
+      <circle cx="290" cy="140" r="4" fill="currentColor" />
+      <text x="268" y="162" fontSize="13" fill="currentColor">+ωₖ − iη</text>
+    </svg>
+  </div>
+
+$i\epsilon$ のやり方：実軸上を積分し，極を上下にずらす。破線は元の極の位置（実軸上の $\pm\omega_{\mathbf{k}}$）からのずれを表す。
+
+</div>
+
+式 $(3.58)$ は，式 $(3.57)$ と同じ内容を表している。違いは，式 $(3.57)$ では積分路 $C_F$ によって極の避け方を指定していたのに対し，式 $(3.58)$ では分母の
+
+$$
++i\epsilon
+$$
+
+によってそれを指定している点である。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">KEY POINT</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">積分路と $i\epsilon$ の同等性</h3>
+
+$$
+\boxed{
+C_F\text{ 積分路}
+\quad\Longleftrightarrow\quad
+k^2-m^2+i\epsilon
+}
+$$
+
+である。$i\epsilon$ は単なる収束因子ではなく，Feynman 伝播関数の時間順序を実現するための極の避け方を指定している。
+
+</div>
+
+このようにして，Feynman 伝播関数は Lorentz 共変性が明らかな四次元表示
+
+$$
+\Delta_F(x)
+=
+\frac{1}{(2\pi)^4}
+\int d^4k\,
+\frac{e^{-ikx}}{k^2-m^2+i\epsilon}
+$$
+
+で表される。運動量空間の Feynman 伝播関数は，この式の Fourier 核に現れる
+
+$$
+\frac{1}{k^2-m^2+i\epsilon}
+$$
+
+である。
+
+## 3. 複素 Klein–Gordon 場と荷電中間子
+
+これまで実 Klein–Gordon 場を用いて，中性中間子の伝播関数を考えた。最後に，この議論を複素 Klein–Gordon 場へ一般化する。複素場は荷電粒子を記述するため，粒子と反粒子を区別する必要がある。
+
+複素 Klein–Gordon 場を
+
+$$
+\phi(x)
+=
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{\sqrt{2\omega_{\mathbf{k}}}}
+\left[
+a_{\mathbf{k}}e^{-ikx}
++
+b^\dagger_{\mathbf{k}}e^{ikx}
+\right]
+$$
+
+と展開する。ここで
+
+$$
+\omega_{\mathbf{k}}=\sqrt{\mathbf{k}^2+m^2},
+\qquad
+k_0=\omega_{\mathbf{k}}>0
+$$
+
+である。
+
+その Hermite 共役は
+
+$$
+\phi^\dagger(x)
+=
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{\sqrt{2\omega_{\mathbf{k}}}}
+\left[
+a^\dagger_{\mathbf{k}}e^{ikx}
++
+b_{\mathbf{k}}e^{-ikx}
+\right]
+$$
+
+である。
+
+ここで，演算子の意味は次の通りである。
+
+$$
+a^\dagger_{\mathbf{k}}
+:
+\text{粒子を生成する},
+\qquad
+a_{\mathbf{k}}
+:
+\text{粒子を消滅させる},
+$$
+
+$$
+b^\dagger_{\mathbf{k}}
+:
+\text{反粒子を生成する},
+\qquad
+b_{\mathbf{k}}
+:
+\text{反粒子を消滅させる}.
+$$
+
+したがって，
+
+$$
+\phi(x)
+$$
+
+は「粒子を消滅させる項」と「反粒子を生成する項」を含む。一方，
+
+$$
+\phi^\dagger(x)
+$$
+
+は「粒子を生成する項」と「反粒子を消滅させる項」を含む。
+
+生成・消滅演算子の非零交換関係は
+
+$$
+[a_{\mathbf{k}},a^\dagger_{\mathbf{p}}]
+=
+(2\pi)^3\delta^{(3)}(\mathbf{k}-\mathbf{p}),
+\qquad
+[b_{\mathbf{k}},b^\dagger_{\mathbf{p}}]
+=
+(2\pi)^3\delta^{(3)}(\mathbf{k}-\mathbf{p})
+$$
+
+であり，その他の交換関係はゼロである。
+
+真空状態は
+
+$$
+a_{\mathbf{k}}|0\rangle=0,
+\qquad
+b_{\mathbf{k}}|0\rangle=0
+$$
+
+によって定義される。
+
+### 3.1 荷電中間子の伝播関数
+
+荷電中間子の Feynman 伝播関数は，次の時間順序二点関数によって定義される。
+
+$$
+\langle0|T\{\phi(x)\phi^\dagger(x')\}|0\rangle
+=
+i\Delta_F(x-x').
+\tag{3.59}
+$$
+
+実場の場合には
+
+$$
+\phi^\dagger(x)=\phi(x)
+$$
+
+であった。しかし，複素場では
+
+$$
+\phi^\dagger(x)\neq\phi(x)
+$$
+
+であるため，荷電中間子の伝播関数では
+
+$$
+\phi(x)
+\quad\text{と}\quad
+\phi^\dagger(x')
+$$
+
+の組を考える。
+
+$\phi^\dagger$ が粒子を生成し，$\phi$ が粒子を消滅させることができるからである。また，時間順序が逆の場合には，$\phi$ が反粒子を生成し，$\phi^\dagger$ が反粒子を消滅させることができる。
+
+### 3.2 $x^0>x'^0$ の場合：粒子の伝播
+
+まず
+
+$$
+x^0>x'^0
+$$
+
+の場合を考える。このとき時間順序積は
+
+$$
+T\{\phi(x)\phi^\dagger(x')\}
+=
+\phi(x)\phi^\dagger(x')
+$$
+
+である。
+
+展開式を代入すると，
+
+$$
+\langle0|\phi(x)\phi^\dagger(x')|0\rangle
+$$
+
+の中で非零になるのは，
+
+$$
+a_{\mathbf{k}}a^\dagger_{\mathbf{p}}
+$$
+
+を含む項だけである。
+
+したがって，
+
+$$
+\langle0|\phi(x)\phi^\dagger(x')|0\rangle
+=
+\int\frac{d^3k}{(2\pi)^3}
+\int\frac{d^3p}{(2\pi)^3}
+\frac{
+e^{-ikx}e^{ipx'}
+}{
+\sqrt{2\omega_{\mathbf{k}}}\sqrt{2\omega_{\mathbf{p}}}
+}
+\langle0|a_{\mathbf{k}}a^\dagger_{\mathbf{p}}|0\rangle .
+$$
+
+ここで
+
+$$
+\langle0|a_{\mathbf{k}}a^\dagger_{\mathbf{p}}|0\rangle
+=
+(2\pi)^3\delta^{(3)}(\mathbf{k}-\mathbf{p})
+$$
+
+を用いると，
+
+$$
+\langle0|\phi(x)\phi^\dagger(x')|0\rangle
+=
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-ik(x-x')}.
+$$
+
+したがって
+
+$$
+\langle0|\phi(x)\phi^\dagger(x')|0\rangle
+=
+i\Delta^+(x-x')
+$$
+
+である。
+
+この過程の物理的解釈は明確である。早い時刻 $x'$ において
+
+$$
+\phi^\dagger(x')
+$$
+
+の中の
+
+$$
+a^\dagger_{\mathbf{p}}
+$$
+
+が粒子を生成する。その粒子が $x$ まで伝播し，遅い時刻 $x$ において
+
+$$
+\phi(x)
+$$
+
+の中の
+
+$$
+a_{\mathbf{k}}
+$$
+
+によって消滅する。
+
+つまり，
+
+$$
+x^0>x'^0
+$$
+
+のとき，式 $(3.59)$ は
+
+$$
+\text{粒子が }x'\text{ で生成され，}x\text{ で消滅する}
+$$
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">模式図：粒子の伝播</h3>
+  <pre className="text-sm leading-relaxed bg-white border border-slate-200 rounded p-4 overflow-x-auto">{`        生成         粒子          消滅
+         - - - - - - - - - - - - ▶
+  ───────●───────────────────────●──────▶ time
+         x'                      x`}</pre>
+
+$x^0>x'^0$：粒子が未来へ伝播する。
+
+</div>
+
+### 3.3 $x^0<x'^0$ の場合：反粒子の伝播
+
+次に
+
+$$
+x^0<x'^0
+$$
+
+の場合を考える。このとき時間順序積は
+
+$$
+T\{\phi(x)\phi^\dagger(x')\}
+=
+\phi^\dagger(x')\phi(x)
+$$
+
+である。
+
+この場合，
+
+$$
+\langle0|\phi^\dagger(x')\phi(x)|0\rangle
+$$
+
+の中で残るのは
+
+$$
+b_{\mathbf{p}}b^\dagger_{\mathbf{k}}
+$$
+
+を含む項である。
+
+実際に計算すると，
+
+$$
+\langle0|\phi^\dagger(x')\phi(x)|0\rangle
+=
+\int\frac{d^3p}{(2\pi)^3}
+\int\frac{d^3k}{(2\pi)^3}
+\frac{
+e^{-ipx'}e^{ikx}
+}{
+\sqrt{2\omega_{\mathbf{p}}}\sqrt{2\omega_{\mathbf{k}}}
+}
+\langle0|b_{\mathbf{p}}b^\dagger_{\mathbf{k}}|0\rangle .
+$$
+
+ここで
+
+$$
+\langle0|b_{\mathbf{p}}b^\dagger_{\mathbf{k}}|0\rangle
+=
+(2\pi)^3\delta^{(3)}(\mathbf{p}-\mathbf{k})
+$$
+
+を用いると，
+
+$$
+\langle0|\phi^\dagger(x')\phi(x)|0\rangle
+=
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{ik(x-x')}.
+$$
+
+これは前に用いた記法では
+
+$$
+\langle0|\phi^\dagger(x')\phi(x)|0\rangle
+=
+-i\Delta^-(x-x')
+$$
+
+に対応する。
+
+したがって，
+
+$$
+x^0<x'^0
+$$
+
+のとき，式 $(3.59)$ の時間順序積は反粒子の生成・消滅として解釈できる。
+
+物理的には，早い時刻 $x$ において
+
+$$
+\phi(x)
+$$
+
+の中の
+
+$$
+b^\dagger_{\mathbf{k}}
+$$
+
+が反粒子を生成する。その反粒子が $x'$ まで伝播し，遅い時刻 $x'$ において
+
+$$
+\phi^\dagger(x')
+$$
+
+の中の
+
+$$
+b_{\mathbf{p}}
+$$
+
+によって消滅する。
+
+つまり，
+
+$$
+x^0<x'^0
+$$
+
+のとき，式 $(3.59)$ は
+
+$$
+\text{反粒子が }x\text{ で生成され，}x'\text{ で消滅する}
+$$
+
+<div className="bg-slate-50 border border-slate-200 rounded-xl p-6 my-8 shadow-sm">
+  <h3 className="text-slate-800 text-lg font-bold mb-4 mt-0">模式図：反粒子の伝播</h3>
+  <pre className="text-sm leading-relaxed bg-white border border-slate-200 rounded p-4 overflow-x-auto">{`        生成        反粒子         消滅
+         - - - - - - - - - - - - ▶
+  ───────●───────────────────────●──────▶ time
+         x                       x'`}</pre>
+
+$x^0<x'^0$：反粒子が未来へ伝播する。
+
+</div>
+
+### 3.4 粒子が過去へ伝播する描像との関係
+
+式 $(3.59)$ には二つの時間順序が含まれている。
+
+$$
+x^0>x'^0
+$$
+
+の場合には，粒子が $x'$ から $x$ へ未来向きに伝播する。一方，
+
+$$
+x^0<x'^0
+$$
+
+の場合には，反粒子が $x$ から $x'$ へ未来向きに伝播する。
+
+この第二の場合は，形式的には
+
+$$
+\text{粒子が }x'\text{ から }x\text{ へ，時間を逆向きに伝播する}
+$$
+
+ようにも描ける。物理的には，
+
+$$
+\boxed{
+\text{時間を逆向きに進む粒子}
+\quad
+\Longleftrightarrow
+\quad
+\text{時間を正向きに進む反粒子}
+}
+$$
+
+として解釈することができる[^1]。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">KEY POINT</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">複素場の演算子の意味</h3>
+
+複素 Klein–Gordon 場では，
+
+$$
+\phi(x)
+=
+\text{粒子の消滅}
++
+\text{反粒子の生成},
+$$
+
+$$
+\phi^\dagger(x)
+=
+\text{粒子の生成}
++
+\text{反粒子の消滅}
+$$
+
+である。
+
+</div>
+
+このように，式 $(3.59)$ は実 Klein–Gordon 場の場合と同じ関数
+
+$$
+\Delta_F(x-x')
+$$
+
+を用いて表される。ただし，複素場ではその物理的意味が
+
+$$
+\text{粒子と反粒子の生成・消滅}
+$$
+
+として現れる。
+
+## 4. 練習問題 3.3：
+
+最後に，練習問題 3.3 として，式 $(3.58)$ から Feynman 伝播関数 $\Delta_F(x)$ が非斉次 Klein–Gordon 方程式を満たすことを確認する。
+
+自然単位系では，式 $(3.58)$ は
+
+$$
+\Delta_F(x)
+=
+\frac{1}{(2\pi)^4}
+\int d^4k\,
+\frac{e^{-ikx}}{k^2-m^2+i\epsilon}
+$$
+
+であった。
+
+ここで Klein–Gordon 演算子
+
+$$
+\Box+m^2
+$$
+
+を $\Delta_F(x)$ に作用させる。平面波に対して
+
+$$
+\Box e^{-ikx}
+=
+-k^2 e^{-ikx}
+$$
+
+であるから，
+
+$$
+(\Box+m^2)e^{-ikx}
+=
+(-k^2+m^2)e^{-ikx}
+=
+-(k^2-m^2)e^{-ikx}
+$$
+
+である。
+
+したがって，
+
+$$
+(\Box+m^2)\Delta_F(x)
+=
+\frac{1}{(2\pi)^4}
+\int d^4k\,
+\frac{(\Box+m^2)e^{-ikx}}
+{k^2-m^2+i\epsilon}
+$$
+
+より，
+
+$$
+(\Box+m^2)\Delta_F(x)
+=
+-\frac{1}{(2\pi)^4}
+\int d^4k\,
+\frac{k^2-m^2}
+{k^2-m^2+i\epsilon}
+e^{-ikx}.
+$$
+
+ここで $\epsilon\to 0^+$ の極限を考えると，
+
+$$
+\frac{k^2-m^2}{k^2-m^2+i\epsilon}
+\longrightarrow
+1
+$$
+
+とみなせる。したがって，
+
+$$
+(\Box+m^2)\Delta_F(x)
+=
+-\frac{1}{(2\pi)^4}
+\int d^4k\,e^{-ikx}.
+$$
+
+Fourier 表示
+
+$$
+\delta^{(4)}(x)
+=
+\frac{1}{(2\pi)^4}
+\int d^4k\,e^{-ikx}
+$$
+
+を用いると，
+
+$$
+\boxed{
+(\Box+m^2)\Delta_F(x)
+=
+-\delta^{(4)}(x)
+}
+$$
+
+を得る。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">RESULT</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">Klein–Gordon 演算子の Green 関数</h3>
+
+したがって，Feynman 伝播関数 $\Delta_F(x)$ は，Klein–Gordon 演算子 $\Box+m^2$ の Green 関数である。符号が負になるのは，
+
+$$
+(\Box+m^2)e^{-ikx}
+=
+-(k^2-m^2)e^{-ikx}
+$$
+
+となるためである。
+
+</div>
+
+### 4.1 Green 関数としての意味
+
+自由場の Klein–Gordon 方程式は
+
+$$
+(\Box+m^2)\phi(x)=0
+$$
+
+である。一方，Feynman 伝播関数は
+
+$$
+(\Box+m^2)\Delta_F(x)
+=
+-\delta^{(4)}(x)
+$$
+
+を満たす。これは，$\Delta_F(x)$ が原点に点源をもつ非斉次 Klein–Gordon 方程式の解であることを意味する。
+
+つまり，$\Delta_F(x-x')$ は，点 $x'$ に置かれた点源が点 $x$ に与える応答を表す Green 関数である。
+
+より一般に，外部源 $J(x)$ に対して
+
+$$
+(\Box+m^2)\phi(x)=-J(x)
+$$
+
+という方程式を考えると，その解は形式的に
+
+$$
+\phi(x)
+=
+\int d^4x'\,\Delta_F(x-x')J(x')
+$$
+
+のように書ける。したがって，伝播関数という名前は，「一点で生じた場の励起が別の一点へ伝わる振幅」という意味を持っている。
+
+### 4.2 対称性から見た $\Delta_F$
+
+式 $(3.58)$ は四次元積分
+
+$$
+\int d^4k
+$$
+
+によって書かれており，分母も
+
+$$
+k^2-m^2+i\epsilon
+$$
+
+である。ここで
+
+$$
+k^2=k_0^2-\mathbf{k}^2
+$$
+
+は Lorentz スカラーである。したがって，この表示では $\Delta_F(x)$ の Lorentz 共変性が見やすい。
+
+一方，三次元表示
+
+$$
+\Delta^+(x)
+=
+-i
+\int\frac{d^3k}{(2\pi)^3}
+\frac{1}{2\omega_{\mathbf{k}}}
+e^{-ikx}
+$$
+
+だけを見ると，時間成分 $k_0$ はすでに
+
+$$
+k_0=\omega_{\mathbf{k}}
+$$
+
+に固定されており，Lorentz 共変性は明らかではない。
+
+この意味で，練習問題 3.3 では，式 $(3.58)$ の四次元表示を用いるのが最も自然である。なぜなら，平面波に対する作用
+
+$$
+(\Box+m^2)e^{-ikx}
+=
+-(k^2-m^2)e^{-ikx}
+$$
+
+を一度使うだけで，すぐに
+
+$$
+(\Box+m^2)\Delta_F(x)
+=
+-\delta^{(4)}(x)
+$$
+
+が得られるからである。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">KEY POINT</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">運動量空間での逆演算子</h3>
+
+つまり，
+
+$$
+\frac{1}{k^2-m^2+i\epsilon}
+$$
+
+が運動量空間における Klein–Gordon 演算子の逆演算子になっている。
+
+</div>
+
+### 4.3 球面調和関数による方法について
+
+$\Delta_F(x)$ は空間回転に対して対称である。したがって，固定した時刻 $x^0=t$ においては，空間部分は
+
+$$
+r=|\mathbf{x}|
+$$
+
+だけに依存すると考えられる。
+
+実際，式 $(3.58)$ から
+
+$$
+\Delta_F(t,\mathbf{x})
+=
+\frac{1}{(2\pi)^4}
+\int_{-\infty}^{\infty} dk_0
+\int d^3k\,
+\frac{e^{-ik_0t+i\mathbf{k}\cdot\mathbf{x}}}
+{k_0^2-\mathbf{k}^2-m^2+i\epsilon}
+$$
+
+と書ける。分母は
+
+$$
+|\mathbf{k}|
+$$
+
+だけに依存するので，$\mathbf{k}$ の角度積分を実行できる。
+
+$$
+\int d\Omega_{\mathbf{k}}\,
+e^{i\mathbf{k}\cdot\mathbf{x}}
+=
+4\pi\frac{\sin kr}{kr},
+\qquad
+k=|\mathbf{k}|,
+\qquad
+r=|\mathbf{x}|.
+$$
+
+したがって，
+
+$$
+\Delta_F(t,r)
+=
+\int_{-\infty}^{\infty}\frac{dk_0}{2\pi}
+\int_0^\infty \frac{dk\,k^2}{2\pi^2}
+\frac{
+e^{-ik_0t}
+}{
+k_0^2-k^2-m^2+i\epsilon
+}
+\frac{\sin kr}{kr}.
+$$
+
+これは式 $(3.58)$ と同じ内容を，空間回転対称性を用いて一次元の動径積分に直したものである。
+
+同じことは，平面波の球面調和関数展開からも理解できる。
+
+$$
+e^{i\mathbf{k}\cdot\mathbf{x}}
+=
+4\pi
+\sum_{\ell=0}^{\infty}
+\sum_{m=-\ell}^{\ell}
+i^\ell
+j_\ell(kr)
+Y_{\ell m}^*(\hat{\mathbf{k}})
+Y_{\ell m}(\hat{\mathbf{x}}).
+$$
+
+ここで，分母
+
+$$
+k_0^2-k^2-m^2+i\epsilon
+$$
+
+は $\hat{\mathbf{k}}$ に依存しない。そのため $\hat{\mathbf{k}}$ の角度積分を行うと，$\ell=0$ の球対称成分だけが残る。結果として，
+
+$$
+j_0(kr)=\frac{\sin kr}{kr}
+$$
+
+が現れる。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">KEY POINT</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">回転対称性と $\ell=0$ 成分</h3>
+
+空間回転対称性を使えば，$\Delta_F(t,\mathbf{x})$ を
+
+$$
+\Delta_F(t,r)
+$$
+
+の形に書き直すことができる。これは球面調和関数展開の観点からは，$\ell=0$ 成分だけが残ることに対応している。
+
+</div>
+
+以上のように，球面調和関数を使うこと自体は可能である。
+
+球面座標で直接計算しようとすると，空間 Laplacian は
+
+$$
+\nabla^2
+=
+\frac{1}{r^2}
+\frac{\partial}{\partial r}
+\left(
+r^2\frac{\partial}{\partial r}
+\right)
+-
+\frac{\mathbf{L}^2}{r^2}
+$$
+
+となる。球対称な $\ell=0$ 成分だけを考えるなら
+
+$$
+\mathbf{L}^2=0
+$$
+
+であるが，それでも
+
+$$
+r=0
+$$
+
+における特異性を正しく扱う必要がある。特に，
+
+$$
+\frac{\sin kr}{r}
+$$
+
+のような関数に Laplacian を作用させると，原点の $\delta^{(3)}(\mathbf{x})$ に関する寄与を慎重に扱わなければならない。
+
+<div className="bg-blue-50 border border-blue-200 rounded-xl p-6 my-8 shadow-md relative overflow-hidden">
+  <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-lg font-bold">SUMMARY</div>
+  <h3 className="text-blue-800 text-xl font-bold mb-4 mt-0">まとめ</h3>
+
+空間回転対称性により，$\Delta_F(t,\mathbf{x})$ は $\Delta_F(t,r)$ として表せる。したがって球面調和関数展開も可能である。しかし，練習問題 3.3 の検証では，四次元 Fourier 表示を用いると
+
+$$
+(\Box+m^2)e^{-ikx}=-(k^2-m^2)e^{-ikx}
+$$
+
+から直ちに結論が得られるため，こちらが最も容易である。
+
+</div>
+
+[^1]: 渡邊靖志『素粒子物理入門』付録A-2-4を参照。

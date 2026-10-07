@@ -7,15 +7,17 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 interface Props {
     title?: string;
     description?: string;
+    ogType?: 'website' | 'article';
+    jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+const { title = SITE_TITLE, description = SITE_DESCRIPTION, ogType, jsonLd } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="ja">
     <head>
-        <BaseHead title={title} description={description} />
+        <BaseHead title={title} description={description} ogType={ogType} jsonLd={jsonLd} />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     </head>
