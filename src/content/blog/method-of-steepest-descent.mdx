@@ -1,74 +1,73 @@
 ---
 title: (Sample)Method of Steepest Descent
-description: "最急降下法的数学原理，通过泰勒展开和拉格朗日乘数法推导最优下降方向"
+description: "最急降下法の数学的原理を解説し、テイラー展開とラグランジュの未定乗数法により最適な降下方向を導出する"
 pubDate: 2025-11-26
 subcategory: "Machine Learning"
 tags: ["Machine Learning", "Deep Learning","test"]
 author: "Andre YI"
 ---
 
-> **摘要**: 本文探讨了最急降下法的数学原理，通过泰勒展开和拉格朗日乘数法推导最优下降方向，分析了标准梯度下降法的收敛性，并讨论了“峡谷形”函数的特殊情况。
+> **概要**: 本稿では最急降下法の数学的原理を考察する。テイラー展開とラグランジュの未定乗数法により最適な降下方向を導出し、標準的な勾配降下法の収束性を解析したうえで、「峡谷型」関数という特殊な場合について議論する。
 
 ---
 
-## 核心思想与推导
+## 基本的なアイデアと導出
 
-给定一个当前点 $x^0$ 和一个很小的步长 $\eta > 0$，我们的目标是寻找一个单位向量 $\nu$ ($||\nu||=1$)，使得函数 $f: \mathbb{R}^n \rightarrow \mathbb{R}$ 在该方向上的减少量最大。
-测试ninininin
+現在の点 $x^0$ と十分小さなステップ幅 $\eta > 0$ が与えられたとき、関数 $f: \mathbb{R}^n \rightarrow \mathbb{R}$ の減少量が最大となる方向の単位ベクトル $\nu$ ($||\nu||=1$) を求めることが目標である。
 
-### 1.1 泰勒展开近似
-根据泰勒展开的一次近似：
-$$ f(x^0 + \eta\nu) - f(x^0) = \eta \langle \nabla f(x^0), \nu \rangle + o(\eta^2) \approx \eta \langle \nabla f(x^0), \nu \rangle $$
+### 1.1 テイラー展開による近似
+テイラー展開の1次近似より、
+$$ f(x^0 + \eta\nu) - f(x^0) = \eta \langle \nabla f(x^0), \nu \rangle + o(\eta) \approx \eta \langle \nabla f(x^0), \nu \rangle $$
 
-为了使函数值下降最快，我们需要最小化 $\langle \nabla f(x^0), \nu \rangle$。
+関数値を最も速く減少させるには、$\langle \nabla f(x^0), \nu \rangle$ を最小化すればよい。
 
-### 1.2 柯西-施瓦茨不等式的直观理解
-由 Cauchy-Schwarz 不等式 $|< a, b >| < ||a|| · ||b||$，我们可以得出：
+### 1.2 コーシー・シュワルツの不等式による直観的理解
+Cauchy-Schwarz の不等式 $|\langle a, b \rangle| \le \|a\| \, \|b\|$ より、次が得られる。
 $$ 
--||∇ f(x^0)|| · ||ν|| < < ∇ f(x^0), ν > < ||∇ f(x^0)|| · ||ν||
+-\|\nabla f(x^0)\| \, \|\nu\| \le \langle \nabla f(x^0), \nu \rangle \le \|\nabla f(x^0)\| \, \|\nu\|
 $$ 
-由于 $||\nu||=1$，当 $\nu$ 与 $\nabla f(x^0)$ 方向相反时，内积取得最小值。
+$||\nu||=1$ であるから、$\nu$ が $\nabla f(x^0)$ と逆向きのとき、内積は最小値をとる。
 
 ---
 
-## 2. 最优下降方向的证明 (Ex 1)
+## 2. 最適な降下方向の証明 (Ex 1)
 
 <div className="math-definition">
   <div className="math-theorem-title">Theorem: Optimal Descent Direction</div>
-在约束条件 $||\nu||=1$ 下，使得 $\langle \nabla f(x^0), \nu \rangle$ 最小化的向量为：
+制約条件 $||\nu||=1$ のもとで $\langle \nabla f(x^0), \nu \rangle$ を最小化するベクトルは次で与えられる。
   $$ 
   ν^* = -\frac{∇ f(x^0)}{||∇ f(x^0)||} 
   $$ 
 </div>
 
 <div className="math-proof">
-    我们使用 **拉格朗日未定乘数法 (Lagrange Multipliers)** 来证明。
+    **ラグランジュの未定乗数法 (Lagrange Multipliers)** を用いて証明する。
 
-**Step 1: 构造拉格朗日函数**  
-    在制约条件 $||\nu||^2 - 1 = 0$ 下最小化目标函数。设拉格朗日函数为：
+**Step 1: ラグランジュ関数の構成**  
+    制約条件 $||\nu||^2 - 1 = 0$ のもとで目的関数を最小化する。ラグランジュ関数を次のようにおく。
     $$ 
-    ℓ(ν, λ) = < ∇ f(x^0), ν > + λ(||ν||^2 - 1)
+    \ell(\nu, \lambda) = \langle \nabla f(x^0), \nu \rangle + \lambda(\|\nu\|^2 - 1)
     $$ 
 
-**Step 2: 求解偏导数**  
-    对 $\nu$ 求偏导并令其为 0：
+**Step 2: 偏導関数の計算**  
+    $\nu$ について偏微分し、0 とおく。
     $$ 
     \frac{∂ ℓ}{∂ ν} = ∇ f(x^0) + 2λν = 0
     $$ 
-    由此得到：
+    これより、
     $$ 
     ν = -\frac{1}{2λ}∇ f(x^0)
     $$ 
 
-**Step 3: 利用约束条件求解 $\lambda$**  
-    代入 $||\nu||^2=1$：
+**Step 3: 制約条件を用いた $\lambda$ の決定**  
+    $||\nu||^2=1$ に代入すると、
     $$ 
-    ||ν||^2 = \frac{1}{4λ^2}||∇ f(x^0)||^2 = 1 = > λ = ± \frac{1}{2}||∇ f(x^0)||
+    \|\nu\|^2 = \frac{1}{4\lambda^2}\|\nabla f(x^0)\|^2 = 1 \implies \lambda = \pm \frac{1}{2}\|\nabla f(x^0)\|
     $$ 
-    为了使目标函数 $\langle \nabla f(x^0), \nu \rangle = - \frac{1}{2λ}||∇ f(x^0)||^2$ 最小，我们需要 $\lambda$ 取正值（使整体为负）。因此取 $\lambda_0 = \frac{1}{2}||∇ f(x^0)||$。
+    目的関数 $\langle \nabla f(x^0), \nu \rangle = - \frac{1}{2λ}||∇ f(x^0)||^2$ を最小にするには、$\lambda$ は正の値をとる必要がある（全体が負となるようにする）。したがって $\lambda_0 = \frac{1}{2}||∇ f(x^0)||$ とする。
 
-    **结论：**  
-    将 $\lambda_0$ 代回 $\nu$ 的表达式：
+    **結論：**  
+    $\lambda_0$ を $\nu$ の式に代入すると、
     $$ 
     ν^* = -\frac{∇ f(x^0)}{||∇ f(x^0)||}
     $$ 
@@ -76,54 +75,54 @@ $$
 
 ---
 
-## 3. 标准梯度下降算法
+## 3. 標準的な勾配降下アルゴリズム
 
-基于上述推导，我们定义迭代公式。
-从初始点 $x^0$ 开始，迭代公式为：
+以上の導出に基づき、反復公式を定義する。
+初期点 $x^0$ から始めて、反復公式は次のようになる。
 $$ 
  x^{n+1} = x^n + η ν^* = x^n - η \frac{∇ f(x^n)}{||∇ f(x^n)||} 
 $$ 
-这里 $\eta$ 被称为**学习率 (Learning Rate)**。
+ここで $\eta$ は**学習率 (Learning Rate)** と呼ばれる。
 
-### Prop 1.1: 标准形式
-如果我们假设步长 $\eta_n$ 是梯度的函数，即 $\eta_n = \delta ||\nabla f(x^n)||$ ($\delta > 0$)，则迭代式简化为我们熟悉的标准梯度下降法：
+### Prop 1.1: 標準形
+ステップ幅 $\eta_n$ を勾配の関数、すなわち $\eta_n = \delta ||\nabla f(x^n)||$ ($\delta > 0$) と仮定すると、反復式はよく知られた標準的な勾配降下法に簡約される。
 $$ 
  x^{n+1} = x^n - δ ∇ f(x^n) 
 $$ 
 
 ---
 
-## 4. 收敛性分析 (Ex 2)
+## 4. 収束性の解析 (Ex 2)
 
 <div className="math-callout math-theorem">
-  <div className="math-theorem-title">Proposition: Convergence Equivalence</div>
-  序列 $(x^n)$ 收敛当且仅当梯度序列 $\nabla f(x^n)$ 收敛于 0。即：
+  <div className="math-theorem-title">Proposition: Convergence and Vanishing Gradient</div>
+  点列 $(x^n)$ が収束するならば、勾配列 $\nabla f(x^n)$ は 0 に収束する。逆は一般には成り立たないが、$\sum_{n} \|\nabla f(x^n)\| < \infty$ を仮定すれば成り立つ。
   $$ 
-  (x^n) 	\text{ converges} \iff ∇ f(x^n) \rightarrow 0 \quad (n \rightarrow \infty) 
+  (x^n) \text{ converges} \implies \nabla f(x^n) \rightarrow 0 \quad (n \rightarrow \infty)
   $$ 
 </div>
 
 <div className="math-proof">
-    **($\Rightarrow$) 方向：**  
-    若 $(x^n)$ 收敛，则 $\lim_{n 	o ∞} ||x^{n+1} - x^n|| = 0$。根据迭代式 $||x^{n+1} - x^n|| = \delta ||\nabla f(x^n)||$，可得 $\lim_{n 	o ∞} ∇ f(x^n) = 0$。
+    **($\Rightarrow$) の証明：**  
+    $(x^n)$ が収束するならば、$\lim_{n \to \infty} \|x^{n+1} - x^n\| = 0$ である。反復式 $\|x^{n+1} - x^n\| = \delta \|\nabla f(x^n)\|$ より、$\lim_{n \to \infty} \nabla f(x^n) = 0$ が得られる。
 
-    **($\Leftarrow$) 方向：**  
-    若 $\nabla f(x^n) 	o 0$，利用三角不等式考查 $||x^{n+p} - x^n||$：
+    **($\Leftarrow$) について：**  
+    $\nabla f(x^n) \to 0$ だけでは収束は保証されない（例えば $\delta\|\nabla f(x^n)\| = 1/n$ のとき、$\sum 1/n = \infty$ より点列は発散しうる）。そこで $\sum_{n} \|\nabla f(x^n)\| < \infty$ を仮定する。三角不等式を用いて $\|x^{n+p} - x^n\|$ を評価すると、
     $$ 
-    ||x^{n+p} - x^n|| \iff \displaystyle\sigma_{j=0}^{p-1} ||x^{n+j+1} - x^{n+j}|| = \delta \sigma_{j=0}^{p-1} ||\nabla f(x^{n+j})||
+    \|x^{n+p} - x^n\| \le \displaystyle\sum_{j=0}^{p-1} \|x^{n+j+1} - x^{n+j}\| = \delta \sum_{j=0}^{p-1} \|\nabla f(x^{n+j})\| \le \delta \sum_{k=n}^{\infty} \|\nabla f(x^{k})\|
     $$ 
-    当 $n\to \infty$ 时，右边趋于 0，说明 $(x^n)$ 是柯西列 (Cauchy Sequence)，因此收敛。
+    右辺は $p$ によらず、$n\to \infty$ のとき収束級数の残り項として 0 に収束する。よって $(x^n)$ はコーシー列 (Cauchy Sequence) であり、したがって収束する。
 </div>
 
 ---
 
-## 5. 峡谷形函数 (Canyon Type) 的特殊举动
+## 5. 峡谷型関数 (Canyon Type) の特殊な挙動
 
-考虑一个典型的"峡谷"函数示例：
+典型的な「峡谷」型関数の例を考える。
 $$
     f(x, y) = \frac{1}{2}y^2 - x, \quad (x, y) \in (0, 1) \times (-2, 2)
 $$
-其梯度为 $\nabla f = (-1, y)^T$。迭代公式变为：
+その勾配は $\nabla f = (-1, y)^T$ であり、反復公式は次のようになる。
 $$
     \begin{cases}
         x^{n+1} = x^n + \delta \\
@@ -131,48 +130,48 @@ $$
     \end{cases}
 $$
 
-### 学习率 $\delta$ 的影响
-对于 $y$ 方向的收敛，我们需要 $|1-\delta| < 1 = > 0 < \delta < 2$。在此范围内，有两种截然不同的行为：
+### 学習率 $\delta$ の影響
+$y$ 方向に収束するためには $|1-\delta| < 1 \iff 0 < \delta < 2$ が必要である。この範囲内で、全く異なる2種類の挙動が現れる。
 
-1.  **单调收敛 ($0 < \delta < 1$)**: 
-    * $1-\delta > (0, 1)$，$(y^n)$ 单调趋于 0。
-    * $x$ 方向以步长 $\delta$ 线性增加，直到边界。
+1.  **単調収束 ($0 < \delta < 1$)**: 
+    * $1-\delta \in (0, 1)$ であり、$(y^n)$ は単調に 0 へ収束する。
+    * $x$ 方向にはステップ幅 $\delta$ で境界に達するまで線形に増加する。
     
-2.  **震荡收敛 ($1 < \delta < 2$)**: 
-    * $1-\delta > (-1, 0)$，$y^n$ 符号交替变化（震荡）。
-    * 这对应于算法在峡谷两壁之间来回跳跃 (Zig-zag) 的现象。
+2.  **振動収束 ($1 < \delta < 2$)**: 
+    * $1-\delta \in (-1, 0)$ であり、$y^n$ の符号は交互に変化する（振動）。
+    * これは、アルゴリズムが峡谷の両壁の間を行き来する (Zig-zag) 現象に対応する。
 
 ---
 
-## Appendix: 补充证明
+## Appendix: 補足証明
 
-### A.1 柯西-施瓦茨不等式 (Cauchy-Schwarz)
+### A.1 コーシー・シュワルツの不等式 (Cauchy-Schwarz)
 
 <div className="math-callout math-theorem">
   <div className="math-theorem-title">Proposition: Cauchy-Schwarz Inequality</div>
-  $$ |< a, b >| < ||a|| · ||b|| 
+  $$ |\langle a, b \rangle| \le \|a\| \, \|b\| 
   $$ 
 </div>
 
 <div className="math-proof">
-    构造二次函数 $g(t) = ||a - tb||^2 > 0$。展开后得到关于 $t$ 的二次式：
+    2次関数 $g(t) = \|a - tb\|^2 \ge 0$ を考える。展開すると $t$ についての2次式が得られる。
     $$ 
-    ||a||^2 - 2t< a, b > + t^2||b||^2 > 0
+    \|a\|^2 - 2t\langle a, b \rangle + t^2\|b\|^2 \ge 0
     $$ 
-    由于恒非负，其判别式 $\Delta < 0$，即 $4< a, b >^2 - 4||a||^2||b||^2 < 0$，整理即得证。
+    これは常に非負であるから、判別式は $\Delta \le 0$、すなわち $4\langle a, b \rangle^2 - 4\|a\|^2\|b\|^2 \le 0$ となり、整理すれば示される。
 </div>
 
 ### A.2 三角不等式
 
 <div className="math-callout math-theorem">
   <div className="math-theorem-title">Proposition: Triangle Inequality</div>
-  $$ ||a+b|| < ||a|| + ||b|| 
+  $$ \|a+b\| \le \|a\| + \|b\| 
   $$ 
 </div>
 
 <div className="math-proof">
     $$ 
-    ||a+b||^2 = ||a||^2 + 2< a, b > + ||b||^2 < ||a||^2 + 2||a||||b|| + ||b||^2 = (||a|| + ||b||)^2
+    \|a+b\|^2 = \|a\|^2 + 2\langle a, b \rangle + \|b\|^2 \le \|a\|^2 + 2\|a\|\|b\| + \|b\|^2 = (\|a\| + \|b\|)^2
     $$ 
-    开方即得证。
+    両辺の平方根をとれば示される。
 </div>

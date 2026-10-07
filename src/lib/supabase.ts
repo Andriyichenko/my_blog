@@ -35,3 +35,31 @@ export async function getFeaturedPosts() {
     return [];
   }
 }
+
+export type HeroPostRow = {
+  slug: string;
+  is_new: boolean;
+  featured_order: number | null;
+};
+
+/**
+ * 主页轮播：新文章（最近 newDays 天发布）在前并标 New，其余用 featured 文章补齐。
+ * 排序逻辑在 Supabase 的 get_hero_posts RPC 中；RPC 未部署时回退到旧的 featured 查询。
+ */
+export async function getHeroPosts(maxCount = 4, newDays = 14): Promise<HeroPostRow[]> {
+  if (!supabase) {
+    console.warn('Supabase client not initialized');
+    return [];
+  }
+
+  const { data, error } = await supabase.rpc('get_hero_posts', {
+    max_count: maxCount,
+    new_days: newDays,
+  });
+
+  if (!error) return (data as HeroPostRow[]) || [];
+
+  console.error('Error calling get_hero_posts, falling back to featured posts:', error);
+  const featured = await getFeaturedPosts();
+  return featured.map((p: any) => ({ slug: p.slug, is_new: false, featured_order: p.featured_order }));
+}
